@@ -14,6 +14,7 @@ import type { JldDashboardOverview } from '../types/jld';
 
 const QUICK_LINKS = [
   { href: '/clients', key: 'clientsTitle' },
+  { href: '/operaciones', key: 'operationsTitle' },
   { href: '/gift-cards', key: 'giftCardsTitle' },
   { href: '/payments', key: 'paymentsTitle' },
   { href: '/products', key: 'productsTitle' },
@@ -86,7 +87,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {QUICK_LINKS.map((item) => (
                   <Link key={item.href} href={item.href} className="card p-5 transition hover:-translate-y-0.5 hover:border-cyan-300/20">
                     <p className="text-sm text-slate-400">{copy.quickAccess}</p>

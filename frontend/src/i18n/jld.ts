@@ -6,6 +6,18 @@ type JldCopy = {
   dashboardTitle: string;
   dashboardSubtitle: string;
   quickLinksTitle: string;
+  operationsTitle: string;
+  operationsSubtitle: string;
+  operationsBoardTitle: string;
+  operationsBoardSubtitle: string;
+  operationsAction: string;
+  operationsSummaryTeams: string;
+  operationsSummaryUnits: string;
+  operationsSummaryStatus: string;
+  operationsSummaryStatusValue: string;
+  operationsDetailTitle: string;
+  operationsDetailSubtitle: string;
+  operationsDetailBack: string;
   clientsTitle: string;
   clientsSubtitle: string;
   giftCardsTitle: string;
@@ -59,6 +71,18 @@ export const JLD_COPY: Record<LanguageCode, JldCopy> = {
     dashboardTitle: 'Jean Louis David Admin',
     dashboardSubtitle: 'Dedicated overview for customers, gift cards, payments, catalog and newsletter.',
     quickLinksTitle: 'Priority modules',
+    operationsTitle: 'Operaciones',
+    operationsSubtitle: 'Operational hub for salon teams, consumables and floor organization.',
+    operationsBoardTitle: 'Operational structure',
+    operationsBoardSubtitle: 'This module is ready to host role-specific workflows without overloading CRM, payments or catalog screens.',
+    operationsAction: 'Open area',
+    operationsSummaryTeams: 'Operational areas',
+    operationsSummaryUnits: 'Dedicated units',
+    operationsSummaryStatus: 'Current status',
+    operationsSummaryStatusValue: 'Structure ready',
+    operationsDetailTitle: 'Operational area',
+    operationsDetailSubtitle: 'This section is prepared as a premium placeholder for future staffing, stock and workflow logic.',
+    operationsDetailBack: 'Back to operations',
     clientsTitle: 'Customers',
     clientsSubtitle: 'Clean JLD customer base, ready for Supabase and future gifting flows.',
     giftCardsTitle: 'Gift Cards',
@@ -110,6 +134,18 @@ export const JLD_COPY: Record<LanguageCode, JldCopy> = {
     dashboardTitle: 'Jean Louis David Admin',
     dashboardSubtitle: 'Vue d’ensemble dediee aux clients, gift cards, paiements, catalogue et newsletter.',
     quickLinksTitle: 'Modules prioritaires',
+    operationsTitle: 'Operaciones',
+    operationsSubtitle: 'Hub operationnel pour les equipes salon, les consommables et l’organisation terrain.',
+    operationsBoardTitle: 'Structure operationnelle',
+    operationsBoardSubtitle: 'Ce module est pret a accueillir des workflows specifiques par metier sans surcharger le CRM ou les paiements.',
+    operationsAction: 'Ouvrir zone',
+    operationsSummaryTeams: 'Piliers operationnels',
+    operationsSummaryUnits: 'Unites dediees',
+    operationsSummaryStatus: 'Statut actuel',
+    operationsSummaryStatusValue: 'Structure prete',
+    operationsDetailTitle: 'Zone operationnelle',
+    operationsDetailSubtitle: 'Cette section est prete comme placeholder premium pour la gestion future des equipes, stocks et routines salon.',
+    operationsDetailBack: 'Retour operations',
     clientsTitle: 'Clients',
     clientsSubtitle: 'Base clients JLD propre, prete pour Supabase et les futurs parcours gift card.',
     giftCardsTitle: 'Gift Cards',
@@ -161,6 +197,18 @@ export const JLD_COPY: Record<LanguageCode, JldCopy> = {
     dashboardTitle: 'Jean Louis David Admin',
     dashboardSubtitle: 'Vista dedicada para clientes, gift cards, pagos, catalogo y newsletter.',
     quickLinksTitle: 'Modulos prioritarios',
+    operationsTitle: 'Operaciones',
+    operationsSubtitle: 'Hub operativo para equipos de salon, consumibles y organizacion de piso.',
+    operationsBoardTitle: 'Estructura operativa',
+    operationsBoardSubtitle: 'Este modulo queda listo para flujos por rol sin sobrecargar CRM, pagos o catalogo.',
+    operationsAction: 'Abrir area',
+    operationsSummaryTeams: 'Areas operativas',
+    operationsSummaryUnits: 'Unidades dedicadas',
+    operationsSummaryStatus: 'Estado actual',
+    operationsSummaryStatusValue: 'Estructura lista',
+    operationsDetailTitle: 'Area operativa',
+    operationsDetailSubtitle: 'Esta seccion queda preparada como placeholder premium para futuras logicas de personal, stock y operacion.',
+    operationsDetailBack: 'Volver a operaciones',
     clientsTitle: 'Clientes',
     clientsSubtitle: 'Base JLD limpia, lista para Supabase y futuros flujos de gifting.',
     giftCardsTitle: 'Gift Cards',

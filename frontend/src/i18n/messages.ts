@@ -6,6 +6,7 @@ export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clients',
+    'nav.operations': 'Operaciones',
     'nav.giftCards': 'Gift Cards',
     'nav.payments': 'Payments',
     'nav.products': 'Products',
@@ -390,6 +391,7 @@ export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clients',
+    'nav.operations': 'Operaciones',
     'nav.giftCards': 'Gift Cards',
     'nav.payments': 'Paiements',
     'nav.products': 'Produits',
@@ -774,6 +776,7 @@ export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clientes',
+    'nav.operations': 'Operaciones',
     'nav.giftCards': 'Gift Cards',
     'nav.payments': 'Pagos',
     'nav.products': 'Productos',

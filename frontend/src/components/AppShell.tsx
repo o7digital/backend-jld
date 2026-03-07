@@ -7,9 +7,12 @@ import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { useI18n } from '../contexts/I18nContext';
 import { useBranding } from '../contexts/BrandingContext';
 
+const DEFAULT_JLD_LOGO_SRC = '/logo-bco.webp';
+
 const nav = [
   { href: '/', labelKey: 'nav.dashboard' },
   { href: '/clients', labelKey: 'nav.clients' },
+  { href: '/operaciones', labelKey: 'nav.operations' },
   { href: '/gift-cards', labelKey: 'nav.giftCards' },
   { href: '/payments', labelKey: 'nav.payments' },
   { href: '/products', labelKey: 'nav.products' },
@@ -25,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
+  const headerLogoSrc = branding.logoDataUrl || DEFAULT_JLD_LOGO_SRC;
 
   const showAdminBackToTop = Boolean(pathname && pathname !== '/admin' && pathname.startsWith('/admin/'));
 
@@ -68,19 +72,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-white/5 bg-[rgba(12,17,34,0.9)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            {branding.logoDataUrl ? (
-              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={branding.logoDataUrl} alt="Logo" className="h-full w-full object-contain p-1" />
-              </div>
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 to-rose-200 text-slate-950">
-                <div className="text-center leading-[0.95]">
-                  <div className="text-[12px] font-extrabold">JLD</div>
-                  <div className="text-[10px] font-semibold">MX</div>
-                </div>
-              </div>
-            )}
+            <div className="flex h-11 w-[168px] items-center justify-center rounded-xl bg-white/[0.03] px-3 ring-1 ring-white/8">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={headerLogoSrc} alt="Jean Louis David" className="h-7 w-full object-contain object-left" />
+            </div>
             <div>
               <p className="text-lg font-semibold">{user?.tenantName || 'Jean Louis David Mexico'}</p>
               <p className="text-xs text-slate-400">{t('app.tagline')}</p>
