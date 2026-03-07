@@ -69,16 +69,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-white/5 bg-[rgba(12,17,34,0.9)] backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-white/8 bg-[rgba(5,5,8,0.96)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-[168px] items-center justify-center rounded-xl bg-white/[0.03] px-3 ring-1 ring-white/8">
+          <div className="flex items-center">
+            <div className="flex h-14 w-[220px] items-center justify-start md:h-20 md:w-[340px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={headerLogoSrc} alt="Jean Louis David" className="h-7 w-full object-contain object-left" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold">{user?.tenantName || 'Jean Louis David Mexico'}</p>
-              <p className="text-xs text-slate-400">{t('app.tagline')}</p>
+              <img src={headerLogoSrc} alt="Jean Louis David" className="h-10 w-full object-contain object-left md:h-14" />
             </div>
           </div>
           <nav className="hidden items-center gap-3 text-sm font-medium text-slate-200 md:flex">
