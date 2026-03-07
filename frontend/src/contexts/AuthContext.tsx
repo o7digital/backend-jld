@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from '../lib/supabaseClient';
 import { API_BASE_URL } from '../lib/apiBase';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 type User = {
   id: string;
@@ -31,6 +32,14 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const PREVIEW_USER: User = {
+  id: 'preview-jld-admin',
+  email: 'admin.preview@jeanlouisdavid.mx',
+  name: 'Jean Louis David Admin',
+  tenantId: 'jld-preview',
+  tenantName: 'Jean Louis David Mexico',
+};
+
 function generateTenantId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -57,6 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!client) throw new Error('Supabase configuration is missing');
     return client;
   }, [safeSupabase]);
+
+  const activatePreviewMode = useCallback(() => {
+    setToken('preview-mode-token');
+    setUser(PREVIEW_USER);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', 'preview-mode-token');
+      localStorage.setItem('user', JSON.stringify(PREVIEW_USER));
+    }
+  }, []);
 
   const syncSession = useCallback((session: Session) => {
     const metadata = (session.user.user_metadata ?? {}) as Record<string, unknown>;
@@ -121,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const supabase = safeSupabase();
       if (!supabase) {
+        activatePreviewMode();
         if (active) setLoading(false);
         return;
       }
@@ -138,10 +157,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [bootstrapTenant, safeSupabase, syncSession]);
+  }, [activatePreviewMode, bootstrapTenant, safeSupabase, syncSession]);
 
   const login = useCallback(
     async (email: string, password: string) => {
+      if (!isSupabaseConfigured()) {
+        activatePreviewMode();
+        return;
+      }
       const supabase = mustSupabase();
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error || !data.session) {
@@ -150,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await bootstrapTenant(data.session.access_token);
       syncSession(data.session);
     },
-    [bootstrapTenant, mustSupabase, syncSession],
+    [activatePreviewMode, bootstrapTenant, mustSupabase, syncSession],
   );
 
   const register = useCallback(
@@ -162,6 +185,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: string;
       inviteToken?: string;
     }) => {
+      if (!isSupabaseConfigured()) {
+        activatePreviewMode();
+        return 'signed-in';
+      }
       const tenantId = payload.tenantId || generateTenantId();
       const supabase = mustSupabase();
       const emailRedirectTo = typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined;
@@ -188,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       syncSession(data.session);
       return 'signed-in';
     },
-    [bootstrapTenant, mustSupabase, syncSession],
+    [activatePreviewMode, bootstrapTenant, mustSupabase, syncSession],
   );
 
   const clearAuthStorage = useCallback(() => {
@@ -206,6 +233,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      activatePreviewMode();
+      return;
+    }
     const supabase = safeSupabase();
     try {
       await supabase?.auth.signOut();
@@ -215,7 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     clearAuthStorage();
-  }, [clearAuthStorage, safeSupabase]);
+  }, [activatePreviewMode, clearAuthStorage, safeSupabase]);
 
   const value = useMemo(
     () => ({

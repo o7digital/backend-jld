@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "o7 PulseCRM Dashboard",
-  description: "Lightweight SaaS-ready CRM dashboard MVP",
+  title: "Jean Louis David Admin",
+  description: "JLD Mexico admin prepared for Supabase customers, gift cards, payments, products and newsletter.",
 };
 
 export default function RootLayout({

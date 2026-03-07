@@ -1,214 +1,199 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Guard } from '../components/Guard';
-import { useApi, useAuth } from '../contexts/AuthContext';
-import Link from 'next/link';
+import { DataModeBadge } from '../components/jld/DataModeBadge';
+import { MetricCard } from '../components/jld/MetricCard';
 import { useI18n } from '../contexts/I18nContext';
+import { getJldCopy } from '../i18n/jld';
+import { formatDate, formatMxn, prettifyToken, statusBadgeClass } from '../lib/jld-format';
+import { getDashboardOverview } from '../services/jld';
+import type { JldDashboardOverview } from '../types/jld';
 
-const USD = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
-const INT = new Intl.NumberFormat('en-US');
-
-type DashboardPayload = {
-  clients: number;
-  tasks: Record<string, number>;
-  leads: {
-    open: number;
-    total: number;
-    openUsd: number;
-    amountUsd: number;
-    openByCurrency: { currency: string; count: number; amount: number }[];
-    openValueUsd: number;
-    fx?: {
-      date: string | null;
-      provider: string | null;
-      missingCurrencies?: string[];
-      error?: string | null;
-    };
-  };
-  invoices: { total: number; amount: number; recent: InvoiceSummary[] };
-};
-
-type InvoiceSummary = {
-  id: string;
-  amount: number;
-  currency: string;
-  createdAt: string;
-  status: string;
-};
+const QUICK_LINKS = [
+  { href: '/clients', key: 'clientsTitle' },
+  { href: '/gift-cards', key: 'giftCardsTitle' },
+  { href: '/payments', key: 'paymentsTitle' },
+  { href: '/products', key: 'productsTitle' },
+  { href: '/newsletter', key: 'newsletterTitle' },
+] as const;
 
 export default function DashboardPage() {
-  const { token } = useAuth();
-  const api = useApi(token);
-  const { t } = useI18n();
-  const [data, setData] = useState<DashboardPayload | null>(null);
+  const { language, t } = useI18n();
+  const copy = getJldCopy(language);
+  const [data, setData] = useState<JldDashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
     let active = true;
-    let inFlight = false;
-    let timer: number | null = null;
-
-    const load = async () => {
-      if (inFlight) return;
-      inFlight = true;
+    (async () => {
       try {
-        const next = await api<DashboardPayload>('/dashboard');
+        const next = await getDashboardOverview();
         if (!active) return;
         setData(next);
-        setError(null);
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : 'Unable to load metrics');
+        setError(err instanceof Error ? err.message : 'Unable to load dashboard');
       } finally {
-        inFlight = false;
         if (active) setLoading(false);
       }
-    };
+    })();
 
-    load();
-    timer = window.setInterval(load, 15_000);
     return () => {
       active = false;
-      if (timer) window.clearInterval(timer);
     };
-  }, [api, token]);
+  }, []);
 
   return (
     <Guard>
       <AppShell>
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.15em] text-slate-400">{t('dashboard.section')}</p>
-            <h1 className="text-3xl font-semibold">{t('nav.dashboard')}</h1>
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.18em] text-slate-400">{copy.quickLinksTitle}</p>
+              <h1 className="mt-2 text-3xl font-semibold">{copy.dashboardTitle}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-slate-400">{copy.dashboardSubtitle}</p>
+            </div>
+            <DataModeBadge
+              mode={data?.dataMode || 'mock'}
+              mockLabel={copy.dataModeMock}
+              liveLabel={copy.dataModeSupabase}
+            />
           </div>
-          <div className="flex gap-3">
-            <Link href="/clients" className="btn-secondary">
-              {t('dashboard.newClient')}
-            </Link>
-            <Link href="/admin/ocr-scan" className="btn-primary">
-              {t('dashboard.uploadInvoice')}
-            </Link>
-          </div>
-        </div>
 
-        {loading && <div className="text-slate-300">{t('dashboard.loading')}</div>}
-        {error && (
-          <div className="text-red-300">
-            {t('common.error')}: {error}
-          </div>
-        )}
+          {loading ? <div className="text-slate-300">{t('common.loading')}</div> : null}
+          {error ? <div className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</div> : null}
 
-        {data && (
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-            <MetricCard
-              title={t('nav.clients')}
-              value={INT.format(data.clients)}
-              hint={t('dashboard.clientsHint')}
-            />
-            <MetricCard
-              title={t('dashboard.openTasks')}
-              value={INT.format(data.tasks['PENDING'] || 0)}
-              hint={t('dashboard.openTasksHint')}
-            />
-            <MetricCard
-              title={t('dashboard.openLeads')}
-              value={INT.format(data.leads.open ?? 0)}
-              hint={t('dashboard.openLeadsHint')}
-            />
-            <MetricCard
-              title={t('dashboard.totalLeads')}
-              value={INT.format(data.leads.total ?? 0)}
-              hint={t('dashboard.totalLeadsHint')}
-            />
-            <MetricCard
-              title={t('dashboard.openPipelineValue')}
-              value={USD.format(data.leads.openValueUsd ?? data.leads.amountUsd ?? 0)}
-              hint={
-                data.leads.fx?.error
-                  ? t('dashboard.fxUnavailable', { amount: USD.format(data.leads.amountUsd ?? 0) })
-                  : `${data.leads.fx?.date ? t('dashboard.fxDate', { date: data.leads.fx.date }) : t('dashboard.fxNA')}${
-                      data.leads.fx?.missingCurrencies?.length
-                        ? ` · ${t('dashboard.fxMissing', { currencies: data.leads.fx.missingCurrencies.join(', ') })}`
-                        : ''
-                    } · ${t('dashboard.usdOnly', { amount: USD.format(data.leads.amountUsd ?? 0) })}`
-              }
-            />
-          </div>
-        )}
-
-        {data && (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <div className="card p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-400">{t('nav.tasks')}</p>
-                <Link href="/tasks" className="text-xs text-cyan-300 underline">
-                  {t('common.manage')}
-                </Link>
+          {data ? (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <MetricCard label={copy.clientsTitle} value={String(data.stats.customers)} hint="Customers table ready" />
+                <MetricCard label={copy.giftCardsTitle} value={String(data.stats.activeGiftCards)} hint="Active cards" />
+                <MetricCard label={copy.paymentsTitle} value={String(data.stats.pendingPayments)} hint="Pending status" />
+                <MetricCard label={copy.productsTitle} value={String(data.stats.activeProducts)} hint="Active catalog items" />
+                <MetricCard
+                  label={copy.newsletterTitle}
+                  value={String(data.stats.newsletterSubscribers)}
+                  hint="Subscribers with source tracking"
+                />
+                <MetricCard
+                  label="Revenue / Liability"
+                  value={`${formatMxn(data.stats.grossRevenueMxn)} / ${formatMxn(data.stats.giftCardLiabilityMxn)}`}
+                  hint="Paid revenue vs active gift card exposure"
+                />
               </div>
-              <div className="mt-4 space-y-2">
-                {Object.entries(data.tasks).map(([status, count]) => (
-                  <div key={status} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
-                    <span className="text-sm text-slate-300">{status}</span>
-                    <span className="text-lg font-semibold">{count}</span>
-                  </div>
+
+              <div className="grid gap-4 lg:grid-cols-5">
+                {QUICK_LINKS.map((item) => (
+                  <Link key={item.href} href={item.href} className="card p-5 transition hover:-translate-y-0.5 hover:border-cyan-300/20">
+                    <p className="text-sm text-slate-400">{copy.quickAccess}</p>
+                    <h2 className="mt-3 text-xl font-semibold">{copy[item.key]}</h2>
+                    <p className="mt-6 text-sm text-cyan-300">{copy.manage}</p>
+                  </Link>
                 ))}
               </div>
-            </div>
-            <div className="card p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-400">{t('dashboard.recentInvoices')}</p>
-                <Link href="/admin/ocr-scan" className="text-xs text-cyan-300 underline">
-                  {t('common.viewAll')}
-                </Link>
+
+              <div className="grid gap-6 xl:grid-cols-3">
+                <section className="card p-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">{copy.recentCustomers}</h2>
+                    <Link href="/clients" className="text-sm text-cyan-300">
+                      {copy.manage}
+                    </Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {data.recentCustomers.map((customer) => (
+                      <div key={customer.id} className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="font-semibold">{customer.fullName}</p>
+                            <p className="text-sm text-slate-400">{customer.email}</p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${customer.newsletterOptIn ? statusBadgeClass('active') : statusBadgeClass('cancelled')}`}>
+                            {customer.newsletterOptIn ? copy.active : copy.inactive}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-slate-500">{formatDate(customer.createdAt, language)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="card p-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">{copy.recentGiftCards}</h2>
+                    <Link href="/gift-cards" className="text-sm text-cyan-300">
+                      {copy.manage}
+                    </Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {data.recentGiftCards.map((giftCard) => (
+                      <div key={giftCard.id} className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="font-semibold">{giftCard.code}</p>
+                            <p className="text-sm text-slate-400">{giftCard.customerEmail}</p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${statusBadgeClass(giftCard.status)}`}>
+                            {prettifyToken(giftCard.status)}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm text-slate-300">{formatMxn(giftCard.amountMxn)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="card p-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">{copy.recentPayments}</h2>
+                    <Link href="/payments" className="text-sm text-cyan-300">
+                      {copy.manage}
+                    </Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {data.recentPayments.map((payment) => (
+                      <div key={payment.id} className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="font-semibold">{formatMxn(payment.amountMxn)}</p>
+                            <p className="text-sm text-slate-400">{prettifyToken(payment.provider)}</p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${statusBadgeClass(payment.paymentStatus)}`}>
+                            {prettifyToken(payment.paymentStatus)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-slate-500">{formatDate(payment.createdAt, language)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               </div>
-              <div className="mt-4 space-y-3">
-                {data.invoices.recent.length === 0 && (
-                  <p className="text-slate-400 text-sm">{t('dashboard.noInvoices')}</p>
-                )}
-                {data.invoices.recent.map((inv) => (
-                  <div key={inv.id} className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-3">
-                    <div>
-                      <p className="text-sm font-semibold">{inv.currency} {Number(inv.amount).toFixed(2)}</p>
-                      <p className="text-xs text-slate-400">{new Date(inv.createdAt).toLocaleDateString()}</p>
+
+              <section className="card p-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">{copy.newsletterSources}</h2>
+                  <Link href="/newsletter" className="text-sm text-cyan-300">
+                    {copy.manage}
+                  </Link>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {data.newsletterBreakdown.map((item) => (
+                    <div key={item.source} className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{copy.source}</p>
+                      <p className="mt-2 text-lg font-semibold">{prettifyToken(item.source)}</p>
+                      <p className="mt-3 text-sm text-slate-400">{item.count} subscribers</p>
                     </div>
-                    <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs text-emerald-200">
-                      {inv.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : null}
+        </div>
       </AppShell>
     </Guard>
-  );
-}
-
-function MetricCard({
-  title,
-  value,
-  hint,
-  valueClassName,
-}: {
-  title: string;
-  value: string | number;
-  hint: string;
-  valueClassName?: string;
-}) {
-  return (
-    <div className="card p-5">
-      <p className="text-sm text-slate-400">{title}</p>
-      <p className={valueClassName ?? 'mt-2 text-3xl font-semibold'}>{value}</p>
-      <p className="text-xs text-slate-500">{hint}</p>
-    </div>
   );
 }

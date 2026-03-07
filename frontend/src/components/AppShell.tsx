@@ -10,13 +10,10 @@ import { useBranding } from '../contexts/BrandingContext';
 const nav = [
   { href: '/', labelKey: 'nav.dashboard' },
   { href: '/clients', labelKey: 'nav.clients' },
-  { href: '/tasks', labelKey: 'nav.tasks' },
-  { href: '/crm', labelKey: 'nav.crm' },
-  { href: '/post-sales', labelKey: 'nav.postSales' },
-  { href: '/orders', labelKey: 'nav.orders' },
-  { href: '/ia-pulse', labelKey: 'nav.iaPulse' },
-  { href: '/forecast', labelKey: 'nav.forecast' },
-  { href: '/export', labelKey: 'nav.export' },
+  { href: '/gift-cards', labelKey: 'nav.giftCards' },
+  { href: '/payments', labelKey: 'nav.payments' },
+  { href: '/products', labelKey: 'nav.products' },
+  { href: '/newsletter', labelKey: 'nav.newsletter' },
   { href: '/admin', labelKey: 'nav.admin' },
 ] as const;
 
@@ -77,15 +74,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <img src={branding.logoDataUrl} alt="Logo" className="h-full w-full object-contain p-1" />
               </div>
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 to-rose-200 text-slate-950">
                 <div className="text-center leading-[0.95]">
-                  <div className="text-[12px] font-extrabold">o7</div>
-                  <div className="text-[10px] font-semibold">Pulse</div>
+                  <div className="text-[12px] font-extrabold">JLD</div>
+                  <div className="text-[10px] font-semibold">MX</div>
                 </div>
               </div>
             )}
             <div>
-              <p className="text-lg font-semibold">{user?.tenantName || 'o7 PulseCRM'}</p>
+              <p className="text-lg font-semibold">{user?.tenantName || 'Jean Louis David Mexico'}</p>
               <p className="text-xs text-slate-400">{t('app.tagline')}</p>
             </div>
           </div>

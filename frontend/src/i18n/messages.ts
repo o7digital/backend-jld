@@ -2,10 +2,14 @@ import type { LanguageCode } from './types';
 
 export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
   en: {
-    'app.tagline': 'Tenant-ready SaaS',
+    'app.tagline': 'JLD Mexico Admin',
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clients',
+    'nav.giftCards': 'Gift Cards',
+    'nav.payments': 'Payments',
+    'nav.products': 'Products',
+    'nav.newsletter': 'Newsletter',
     'nav.tasks': 'Tasks',
     'nav.invoices': 'OCR - Scan',
     'nav.ocrScan': 'OCR - Scan',
@@ -382,10 +386,14 @@ export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
     'adminSubscriptions.table.created': 'Created',
   },
   fr: {
-    'app.tagline': 'SaaS multi-tenant',
+    'app.tagline': 'Admin JLD Mexico',
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clients',
+    'nav.giftCards': 'Gift Cards',
+    'nav.payments': 'Paiements',
+    'nav.products': 'Produits',
+    'nav.newsletter': 'Newsletter',
     'nav.tasks': 'Taches',
     'nav.invoices': 'OCR - Scan',
     'nav.ocrScan': 'OCR - Scan',
@@ -762,10 +770,14 @@ export const MESSAGES: Record<LanguageCode, Record<string, string>> = {
     'adminSubscriptions.table.created': 'Cree',
   },
   es: {
-    'app.tagline': 'SaaS multi-tenant',
+    'app.tagline': 'Admin JLD Mexico',
 
     'nav.dashboard': 'Dashboard',
     'nav.clients': 'Clientes',
+    'nav.giftCards': 'Gift Cards',
+    'nav.payments': 'Pagos',
+    'nav.products': 'Productos',
+    'nav.newsletter': 'Newsletter',
     'nav.tasks': 'Tareas',
     'nav.invoices': 'OCR - Scan',
     'nav.ocrScan': 'OCR - Scan',

@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useApi, useAuth } from './AuthContext';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 type Branding = {
   logoDataUrl: string | null;
@@ -46,7 +47,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!token || !user?.tenantId) {
+    if (!isSupabaseConfigured() || !token || !user?.tenantId) {
       setBranding(DEFAULT_BRANDING);
       setError(null);
       return;
@@ -73,6 +74,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
   const updateBranding = useCallback(
     async (patch: Partial<Branding>) => {
+      if (!isSupabaseConfigured()) {
+        setBranding((prev) => ({ ...prev, ...patch }));
+        return;
+      }
       if (!token || !user?.tenantId) throw new Error('Not authenticated');
       setLoading(true);
       setError(null);
@@ -136,4 +141,3 @@ export function useBranding() {
   if (!ctx) throw new Error('useBranding must be used within BrandingProvider');
   return ctx;
 }
-

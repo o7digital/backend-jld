@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="card w-full max-w-md p-8">
-        <p className="text-sm uppercase tracking-[0.2em] text-slate-400">o7 PulseCRM</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Jean Louis David Admin</p>
         <h1 className="mt-2 text-2xl font-semibold">{t('auth.welcomeBack')}</h1>
         <p className="text-sm text-slate-400">{t('auth.signInWorkspace')}</p>
 
