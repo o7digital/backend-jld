@@ -72,9 +72,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-20 border-b border-white/8 bg-[rgba(5,5,8,0.96)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center">
-            <div className="flex h-14 w-[220px] items-center justify-start md:h-20 md:w-[340px]">
+            <div className="flex h-[84px] w-[330px] items-center justify-start md:h-[120px] md:w-[510px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={headerLogoSrc} alt="Jean Louis David" className="h-10 w-full object-contain object-left md:h-14" />
+              <img
+                src={headerLogoSrc}
+                alt="Jean Louis David"
+                className="h-[60px] w-full object-contain object-left md:h-[84px]"
+              />
             </div>
           </div>
           <nav className="hidden items-center gap-3 text-sm font-medium text-slate-200 md:flex">
