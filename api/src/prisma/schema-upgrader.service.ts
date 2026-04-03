@@ -18,6 +18,7 @@ export class SchemaUpgraderService {
     await this.ensureSubscriptionsSchema();
     await this.ensureTenantBrandingFields();
     await this.ensureTenantCrmSettingsFields();
+    await this.ensureSalonManagementSchema();
   }
 
   private async tableExists(table: string) {
@@ -392,6 +393,280 @@ export class SchemaUpgraderService {
         await this.prisma.$executeRawUnsafe(`ALTER TABLE "Tenant" ADD COLUMN "${col.name}" ${col.type};`);
       } catch {
         // Ignore permissions / already-added races.
+      }
+    }
+  }
+
+  private async ensureSalonManagementSchema() {
+    await this.prisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_type t
+          JOIN pg_namespace n ON n.oid = t.typnamespace
+          WHERE t.typname = 'SalonInventoryMovementType' AND n.nspname = 'public'
+        ) THEN
+          CREATE TYPE "SalonInventoryMovementType" AS ENUM (
+            'PURCHASE',
+            'ADJUSTMENT',
+            'CONSUMPTION',
+            'TRANSFER_IN',
+            'TRANSFER_OUT'
+          );
+        END IF;
+      END $$;
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonBranch" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "licenseCode" TEXT,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonBranch_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonCollaborator" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "branchId" TEXT NOT NULL,
+        "code" INTEGER,
+        "name" TEXT NOT NULL,
+        "roleLabel" TEXT,
+        "email" TEXT,
+        "phone" TEXT,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonCollaborator_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonSupplier" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "executive" TEXT,
+        "phone" TEXT,
+        "email" TEXT,
+        "notes" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonSupplier_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonServiceCategory" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "branchId" TEXT,
+        "position" INTEGER NOT NULL,
+        "name" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonServiceCategory_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonService" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "categoryId" TEXT,
+        "key" TEXT,
+        "name" TEXT NOT NULL,
+        "price1" DECIMAL(12,2),
+        "price2" DECIMAL(12,2),
+        "price3" DECIMAL(12,2),
+        "collaboratorPrice" DECIMAL(12,2),
+        "cost" DECIMAL(12,2),
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonService_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonProduct" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "branchId" TEXT,
+        "supplierId" TEXT,
+        "code" TEXT,
+        "name" TEXT NOT NULL,
+        "line" TEXT,
+        "brand" TEXT,
+        "price1" DECIMAL(12,2),
+        "price2" DECIMAL(12,2),
+        "price3" DECIMAL(12,2),
+        "collaboratorPrice" DECIMAL(12,2),
+        "cost" DECIMAL(12,2),
+        "stock" DECIMAL(12,3),
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonProduct_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonInventoryMovement" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "branchId" TEXT,
+        "productId" TEXT NOT NULL,
+        "type" "SalonInventoryMovementType" NOT NULL,
+        "quantity" DECIMAL(12,3) NOT NULL,
+        "reason" TEXT,
+        "createdById" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "SalonInventoryMovement_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SalonServiceEntry" (
+        "id" TEXT NOT NULL,
+        "tenantId" TEXT NOT NULL,
+        "branchId" TEXT NOT NULL,
+        "collaboratorId" TEXT NOT NULL,
+        "clientId" TEXT,
+        "serviceId" TEXT,
+        "serviceName" TEXT NOT NULL,
+        "clientName" TEXT NOT NULL,
+        "quantity" DECIMAL(10,2) NOT NULL DEFAULT 1,
+        "amount" DECIMAL(12,2) NOT NULL,
+        "durationMinutes" INTEGER,
+        "happenedAt" TIMESTAMP(3) NOT NULL,
+        "notes" TEXT,
+        "consumptions" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "SalonServiceEntry_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    const indexes = [
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonBranch_tenantId_name_key" ON "SalonBranch"("tenantId","name");`,
+      `CREATE INDEX IF NOT EXISTS "SalonBranch_tenantId_idx" ON "SalonBranch"("tenantId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonCollaborator_tenantId_idx" ON "SalonCollaborator"("tenantId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonCollaborator_branchId_idx" ON "SalonCollaborator"("branchId");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonCollaborator_tenantId_branchId_name_key" ON "SalonCollaborator"("tenantId","branchId","name");`,
+      `CREATE INDEX IF NOT EXISTS "SalonSupplier_tenantId_idx" ON "SalonSupplier"("tenantId");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonSupplier_tenantId_name_key" ON "SalonSupplier"("tenantId","name");`,
+      `CREATE INDEX IF NOT EXISTS "SalonServiceCategory_tenantId_idx" ON "SalonServiceCategory"("tenantId");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonServiceCategory_tenantId_name_key" ON "SalonServiceCategory"("tenantId","name");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonServiceCategory_tenantId_position_key" ON "SalonServiceCategory"("tenantId","position");`,
+      `CREATE INDEX IF NOT EXISTS "SalonService_tenantId_idx" ON "SalonService"("tenantId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonService_categoryId_idx" ON "SalonService"("categoryId");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonService_tenantId_name_key" ON "SalonService"("tenantId","name");`,
+      `CREATE INDEX IF NOT EXISTS "SalonProduct_tenantId_idx" ON "SalonProduct"("tenantId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonProduct_branchId_idx" ON "SalonProduct"("branchId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonProduct_supplierId_idx" ON "SalonProduct"("supplierId");`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SalonProduct_tenantId_name_key" ON "SalonProduct"("tenantId","name");`,
+      `CREATE INDEX IF NOT EXISTS "SalonInventoryMovement_tenantId_createdAt_idx" ON "SalonInventoryMovement"("tenantId","createdAt");`,
+      `CREATE INDEX IF NOT EXISTS "SalonInventoryMovement_productId_idx" ON "SalonInventoryMovement"("productId");`,
+      `CREATE INDEX IF NOT EXISTS "SalonServiceEntry_tenantId_happenedAt_idx" ON "SalonServiceEntry"("tenantId","happenedAt");`,
+      `CREATE INDEX IF NOT EXISTS "SalonServiceEntry_branchId_happenedAt_idx" ON "SalonServiceEntry"("branchId","happenedAt");`,
+      `CREATE INDEX IF NOT EXISTS "SalonServiceEntry_collaboratorId_happenedAt_idx" ON "SalonServiceEntry"("collaboratorId","happenedAt");`,
+      `CREATE INDEX IF NOT EXISTS "SalonServiceEntry_clientId_idx" ON "SalonServiceEntry"("clientId");`,
+    ];
+
+    for (const sql of indexes) {
+      await this.prisma.$executeRawUnsafe(sql);
+    }
+
+    const fks: Array<{ name: string; sql: string }> = [
+      {
+        name: 'SalonBranch_tenantId_fkey',
+        sql: `ALTER TABLE "SalonBranch" ADD CONSTRAINT "SalonBranch_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonCollaborator_tenantId_fkey',
+        sql: `ALTER TABLE "SalonCollaborator" ADD CONSTRAINT "SalonCollaborator_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonCollaborator_branchId_fkey',
+        sql: `ALTER TABLE "SalonCollaborator" ADD CONSTRAINT "SalonCollaborator_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "SalonBranch"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonSupplier_tenantId_fkey',
+        sql: `ALTER TABLE "SalonSupplier" ADD CONSTRAINT "SalonSupplier_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceCategory_tenantId_fkey',
+        sql: `ALTER TABLE "SalonServiceCategory" ADD CONSTRAINT "SalonServiceCategory_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonService_categoryId_fkey',
+        sql: `ALTER TABLE "SalonService" ADD CONSTRAINT "SalonService_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "SalonServiceCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonService_tenantId_fkey',
+        sql: `ALTER TABLE "SalonService" ADD CONSTRAINT "SalonService_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonProduct_tenantId_fkey',
+        sql: `ALTER TABLE "SalonProduct" ADD CONSTRAINT "SalonProduct_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonProduct_branchId_fkey',
+        sql: `ALTER TABLE "SalonProduct" ADD CONSTRAINT "SalonProduct_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "SalonBranch"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonProduct_supplierId_fkey',
+        sql: `ALTER TABLE "SalonProduct" ADD CONSTRAINT "SalonProduct_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "SalonSupplier"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonInventoryMovement_tenantId_fkey',
+        sql: `ALTER TABLE "SalonInventoryMovement" ADD CONSTRAINT "SalonInventoryMovement_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonInventoryMovement_branchId_fkey',
+        sql: `ALTER TABLE "SalonInventoryMovement" ADD CONSTRAINT "SalonInventoryMovement_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "SalonBranch"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonInventoryMovement_productId_fkey',
+        sql: `ALTER TABLE "SalonInventoryMovement" ADD CONSTRAINT "SalonInventoryMovement_productId_fkey" FOREIGN KEY ("productId") REFERENCES "SalonProduct"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceEntry_tenantId_fkey',
+        sql: `ALTER TABLE "SalonServiceEntry" ADD CONSTRAINT "SalonServiceEntry_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceEntry_branchId_fkey',
+        sql: `ALTER TABLE "SalonServiceEntry" ADD CONSTRAINT "SalonServiceEntry_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "SalonBranch"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceEntry_collaboratorId_fkey',
+        sql: `ALTER TABLE "SalonServiceEntry" ADD CONSTRAINT "SalonServiceEntry_collaboratorId_fkey" FOREIGN KEY ("collaboratorId") REFERENCES "SalonCollaborator"("id") ON DELETE CASCADE ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceEntry_clientId_fkey',
+        sql: `ALTER TABLE "SalonServiceEntry" ADD CONSTRAINT "SalonServiceEntry_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+      {
+        name: 'SalonServiceEntry_serviceId_fkey',
+        sql: `ALTER TABLE "SalonServiceEntry" ADD CONSTRAINT "SalonServiceEntry_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "SalonService"("id") ON DELETE SET NULL ON UPDATE CASCADE;`,
+      },
+    ];
+
+    for (const fk of fks) {
+      const exists = await this.constraintExists(fk.name);
+      if (exists) continue;
+      try {
+        await this.prisma.$executeRawUnsafe(fk.sql);
+      } catch {
+        // Ignore constraint races / existing under another name.
       }
     }
   }

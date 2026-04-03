@@ -19,6 +19,7 @@ import { ProductsModule } from './products/products.module';
 import { FxModule } from './fx/fx.module';
 import { IaModule } from './ia/ia.module';
 import { TenantModule } from './tenant/tenant.module';
+import { SalonModule } from './salon/salon.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TenantModule } from './tenant/tenant.module';
     AdminModule,
     ProductsModule,
     TenantModule,
+    SalonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
