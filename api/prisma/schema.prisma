@@ -34,6 +34,14 @@ model Tenant {
   products Product[]
   dealItems DealItem[]
   userInvites UserInvite[]
+  salonBranches SalonBranch[]
+  salonCollaborators SalonCollaborator[]
+  salonSuppliers SalonSupplier[]
+  salonServiceCategories SalonServiceCategory[]
+  salonServices SalonService[]
+  salonProducts SalonProduct[]
+  salonInventoryMovements SalonInventoryMovement[]
+  salonServiceEntries SalonServiceEntry[]
 }
 
 enum UserRole {
@@ -129,6 +137,7 @@ model Client {
   tasks   Task[]
   invoices Invoice[]
   deals   Deal[]
+  salonServiceEntries SalonServiceEntry[]
 }
 
 model Task {
@@ -258,6 +267,193 @@ model DealItem {
   @@index([tenantId])
   @@index([dealId])
   @@index([productId])
+}
+
+enum SalonInventoryMovementType {
+  PURCHASE
+  ADJUSTMENT
+  CONSUMPTION
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+model SalonBranch {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  licenseCode String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant        Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  collaborators SalonCollaborator[]
+  products      SalonProduct[]
+  serviceEntries SalonServiceEntry[]
+  inventoryMovements SalonInventoryMovement[]
+
+  @@index([tenantId])
+  @@unique([tenantId, name])
+}
+
+model SalonCollaborator {
+  id        String   @id @default(uuid())
+  tenantId  String
+  branchId  String
+  code      Int?
+  name      String
+  roleLabel String?
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch         SalonBranch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  serviceEntries SalonServiceEntry[]
+
+  @@index([tenantId])
+  @@index([branchId])
+  @@unique([tenantId, branchId, name])
+}
+
+model SalonSupplier {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  executive String?
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products SalonProduct[]
+
+  @@index([tenantId])
+  @@unique([tenantId, name])
+}
+
+model SalonServiceCategory {
+  id        String   @id @default(uuid())
+  tenantId  String
+  branchId  String?
+  position  Int
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  services SalonService[]
+
+  @@index([tenantId])
+  @@unique([tenantId, name])
+  @@unique([tenantId, position])
+}
+
+model SalonService {
+  id          String   @id @default(uuid())
+  tenantId    String
+  categoryId  String?
+  key         String?
+  name        String
+  price1      Decimal? @db.Decimal(12, 2)
+  price2      Decimal? @db.Decimal(12, 2)
+  price3      Decimal? @db.Decimal(12, 2)
+  collaboratorPrice Decimal? @db.Decimal(12, 2)
+  cost        Decimal? @db.Decimal(12, 2)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category       SalonServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  serviceEntries SalonServiceEntry[]
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@unique([tenantId, name])
+}
+
+model SalonProduct {
+  id          String   @id @default(uuid())
+  tenantId    String
+  branchId    String?
+  supplierId  String?
+  code        String?
+  name        String
+  line        String?
+  brand       String?
+  price1      Decimal? @db.Decimal(12, 2)
+  price2      Decimal? @db.Decimal(12, 2)
+  price3      Decimal? @db.Decimal(12, 2)
+  collaboratorPrice Decimal? @db.Decimal(12, 2)
+  cost        Decimal? @db.Decimal(12, 2)
+  stock       Decimal? @db.Decimal(12, 3)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant    Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch    SalonBranch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  supplier  SalonSupplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  inventoryMovements SalonInventoryMovement[]
+
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([supplierId])
+  @@unique([tenantId, name])
+}
+
+model SalonInventoryMovement {
+  id          String                     @id @default(uuid())
+  tenantId    String
+  branchId    String?
+  productId   String
+  type        SalonInventoryMovementType
+  quantity    Decimal                    @db.Decimal(12, 3)
+  reason      String?
+  createdById String?
+  createdAt   DateTime                   @default(now())
+
+  tenant  Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch  SalonBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  product SalonProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([productId])
+}
+
+model SalonServiceEntry {
+  id             String   @id @default(uuid())
+  tenantId       String
+  branchId       String
+  collaboratorId String
+  clientId       String?
+  serviceId      String?
+  serviceName    String
+  clientName     String
+  quantity       Decimal  @default(1) @db.Decimal(10, 2)
+  amount         Decimal  @db.Decimal(12, 2)
+  durationMinutes Int?
+  happenedAt     DateTime
+  notes          String?
+  consumptions   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch       SalonBranch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  collaborator SalonCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  client       Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  service      SalonService?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, happenedAt])
+  @@index([branchId, happenedAt])
+  @@index([collaboratorId, happenedAt])
+  @@index([clientId])
 }
 
 model DealStageHistory {
