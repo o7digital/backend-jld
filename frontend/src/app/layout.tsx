@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jean Louis David Admin",
-  description: "JLD Mexico admin prepared for Supabase customers, gift cards, payments, products and newsletter.",
+  title: "Jean Louis David Backend Premium",
+  description: "Mockup premium del backend propietario JLD para dirección, ventas, operaciones e IA.",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
