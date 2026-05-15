@@ -15,6 +15,13 @@ type ModuleSection = {
   accent: string;
 };
 
+type CentralModule = {
+  title: string;
+  subtitle: string;
+  metric: string;
+  status: 'ready' | 'review' | 'locked';
+};
+
 type Language = 'es' | 'en';
 
 const copy = {
@@ -103,6 +110,16 @@ const copy = {
     ticketsIssued: 'Tickets emitidos',
     topServices: 'Top 10 tipos de servicio',
     viewsPrepared: 'Vistas preparadas',
+    adminOperations: 'Administrativo operativo',
+    centralSystem: 'Sistema Central',
+    centralSystemSubtitle: 'Accesos agrupados como el sistema actual, con lectura ejecutiva y control operativo en la misma pantalla.',
+    catalogControl: 'Control de catálogos',
+    collaboratorSecurity: 'Seguridad colaboradores',
+    reportForms: 'Reportes y consultas',
+    cashDesk: 'Caja chica y efectivo',
+    serviceCatalog: 'Catálogo de servicios',
+    permissionMatrix: 'Matriz de permisos',
+    pendingSetup: 'Pendiente setup',
   },
   en: {
     admin: 'Admin',
@@ -189,6 +206,16 @@ const copy = {
     ticketsIssued: 'Issued tickets',
     topServices: 'Top 10 service types',
     viewsPrepared: 'Prepared views',
+    adminOperations: 'Operational administration',
+    centralSystem: 'Central System',
+    centralSystemSubtitle: 'Access grouped like the current system, with executive readout and operational control in one screen.',
+    catalogControl: 'Catalog control',
+    collaboratorSecurity: 'Collaborator security',
+    reportForms: 'Reports and queries',
+    cashDesk: 'Petty cash and cash',
+    serviceCatalog: 'Service catalog',
+    permissionMatrix: 'Permission matrix',
+    pendingSetup: 'Setup pending',
   },
 } satisfies Record<Language, Record<string, string>>;
 
@@ -249,6 +276,8 @@ const productModules = [
   'Historial de compras',
   'Detalle de consumo interno',
   'Concentrado consumo interno',
+  'Detalle transferencias producto',
+  'Pedidos',
 ];
 
 const catalogModules = [
@@ -260,6 +289,64 @@ const catalogModules = [
   'Cat. productos',
   'Cat. gastos',
   'Cat. paquetes',
+  'Cat. usuarios central',
+  'Copiar catálogos',
+];
+
+const administrativeModules = [
+  'Ajustar movimientos sucursal',
+  'Reimpresión',
+  'Gastos mayores y de caja chica',
+  'Cálculo de comisiones',
+  'Registros de asistencia',
+  'Ventas producto a colaboradores',
+  'Préstamo a colaboradores',
+  'Propinas a colaboradores',
+  'Reporte retiros efectivo',
+];
+
+const branchAdjustmentModules = [
+  'Ajustar saldo inicial caja chica',
+  'Abrir corte de caja',
+  'Ajustar retiro de efectivo',
+  'Modificar notas',
+  'Cancelar notas',
+  'Ajustar gastos caja chica',
+  'Ajustar préstamos',
+];
+
+const centralModules: CentralModule[] = [
+  { title: 'Catálogos', subtitle: 'Sucursales, servicios, colaboradores, proveedores y paquetes.', metric: '10 accesos', status: 'ready' },
+  { title: 'Dashboard', subtitle: 'Venta MTD, mix de pago, productividad, crédito e inventario.', metric: '$1.84M MTD', status: 'ready' },
+  { title: 'Administrativo', subtitle: 'Caja, comisiones, asistencia, préstamos, propinas y reimpresión.', metric: '9 accesos', status: 'ready' },
+  { title: 'Análisis de Ventas', subtitle: 'Resumen financiero, ingresos, descuentos, crédito y forma de pago.', metric: '8 reportes', status: 'ready' },
+  { title: 'Productividad', subtitle: 'Sucursal, acumulados, tiempos y desempeño individual.', metric: '8 reportes', status: 'ready' },
+  { title: 'Producto', subtitle: 'Inventario, compras, consumo interno, transferencias y pedidos.', metric: '10 accesos', status: 'ready' },
+  { title: 'Clientes', subtitle: 'Historial, adeudos, retorno, frecuencia y campañas VIP.', metric: '2,486 activos', status: 'review' },
+  { title: 'Bitácora', subtitle: 'Cambios de caja, inventario, permisos y movimientos críticos.', metric: '312 eventos', status: 'review' },
+  { title: 'Parámetros', subtitle: 'Configuración de sucursal, seguridad, precios y reglas operativas.', metric: '18 reglas', status: 'ready' },
+];
+
+const serviceCatalogRows = [
+  { key: 'BALAYAGE 6', division: 'BALAYAGE', name: 'BALAYAGE DENSIDAD', price1: '$5,900.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BALAYAGE 2', division: 'BALAYAGE', name: 'BALAYAGE CORTO CON DENSIDAD AL OIDO', price1: '$1,900.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BALAYAGE 3', division: 'BALAYAGE', name: 'BALAYAGE MEDIANO SIN DENSIDAD AL HOMBRO', price1: '$2,450.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BARBERIA 2', division: 'BARBERIA', name: 'ARREGLO MEDIA BARBA', price1: '$500.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'CARGO 100', division: 'CARGO A HABITACION', name: 'CARGO A HABITACION', price1: '$100.00', price2: '$0.00', cost: '$0.00' },
+];
+
+const permissionRows = [
+  { collaborator: 'Abril Zarco', branch: 'Santa Fe', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Limitado' },
+  { collaborator: 'Ana Maria Alvarado', branch: 'Santa Fe', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
+  { collaborator: 'Juan Resendiz', branch: 'Polanco', caja: 'Activo', notas: 'Limitado', inventario: 'Activo', seguridad: 'Limitado' },
+  { collaborator: 'Olivier', branch: 'Polanco', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
+];
+
+const reportWorkflows = [
+  { title: 'Propinas a colaboradores', branch: 'Sucursal + periodo', output: 'Colaborador, propina, ticket, corte', state: 'Listo mock' },
+  { title: 'Venta al colaborador', branch: 'Sucursal + periodo + colaborador', output: 'Productos vendidos, precio, descuento', state: 'Listo mock' },
+  { title: 'Préstamo a colaboradores', branch: 'Sucursal + colaborador', output: 'Saldo, abonos, vencimiento', state: 'Listo mock' },
+  { title: 'Reporte retiros efectivo', branch: 'Sucursal + corte', output: 'Retiro, usuario, autorización', state: 'Pendiente setup' },
 ];
 
 const dashboardMetrics = [
@@ -346,6 +433,8 @@ const moduleSectionsData: ModuleSection[] = [
   { title: 'Productividad', description: 'Sucursal, equipo, tiempos de atención y desempeño individual.', items: productivityModules, accent: 'from-blue-500/20 to-transparent' },
   { title: 'Producto', description: 'Inventario, compras, ajustes, consumo interno e historial.', items: productModules, accent: 'from-emerald-500/20 to-transparent' },
   { title: 'Catálogos', description: 'Estructura maestra de operación para sucursales y servicios.', items: catalogModules, accent: 'from-slate-500/20 to-transparent' },
+  { title: 'Administrativo', description: 'Caja, cortes, comisiones, ventas a colaboradores, préstamos y propinas.', items: administrativeModules, accent: 'from-rose-500/20 to-transparent' },
+  { title: 'Ajustes sucursal', description: 'Operaciones sensibles de caja chica, notas, retiros y préstamos.', items: branchAdjustmentModules, accent: 'from-cyan-500/20 to-transparent' },
 ];
 
 const monthlyComparison = [
@@ -361,6 +450,8 @@ const modulePreviewData = [
   { module: 'Productividad Individual Detallada', owner: 'Operación', status: 'Listo mock', metric: '52 colaboradores' },
   { module: 'Inventario sucursal', owner: 'Producto', status: 'Listo mock', metric: '218 SKUs' },
   { module: 'Cat. servicios', owner: 'Admin', status: 'Listo mock', metric: '94 servicios' },
+  { module: 'Propinas a colaboradores', owner: 'Admin', status: 'Listo mock', metric: '52 colaboradores' },
+  { module: 'Seguridad colaboradores', owner: 'Admin', status: 'Listo mock', metric: '17 permisos' },
 ];
 
 function Header({ activeModule, language, onToggleSidebar }: { activeModule: string; language: Language; onToggleSidebar: () => void }) {
@@ -608,6 +699,121 @@ function ModuleGrid({ sections, activeModule, onSelect }: { sections: ModuleSect
         </div>
       ))}
     </div>
+  );
+}
+
+function CentralSystemGrid({ language, onSelect }: { language: Language; onSelect: (value: string) => void }) {
+  const t = copy[language];
+  return (
+    <SectionCard eyebrow={t.centralSystem} title={t.adminOperations} action={language === 'en' ? '9 families mapped' : '9 familias mapeadas'}>
+      <div className="mb-5 max-w-3xl text-sm leading-6 text-stone-600">{t.centralSystemSubtitle}</div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {centralModules.map((module) => {
+          const statusClass =
+            module.status === 'ready'
+              ? 'bg-emerald-50 text-emerald-700'
+              : module.status === 'review'
+                ? 'bg-amber-50 text-amber-700'
+                : 'bg-stone-100 text-stone-500';
+          return (
+            <button
+              key={module.title}
+              type="button"
+              onClick={() => onSelect(module.title)}
+              className="min-h-44 rounded-[22px] border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:border-amber-300 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-lg font-semibold text-white">
+                  {module.title.slice(0, 1)}
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}>
+                  {module.status === 'ready' ? t.readyMock : module.status === 'review' ? language === 'en' ? 'Review' : 'Revisión' : t.pendingSetup}
+                </span>
+              </div>
+              <div className="mt-4 text-lg font-semibold text-slate-950">{module.title}</div>
+              <div className="mt-2 text-sm leading-6 text-stone-500">{module.subtitle}</div>
+              <div className="mt-4 text-sm font-semibold text-amber-700">{module.metric}</div>
+            </button>
+          );
+        })}
+      </div>
+    </SectionCard>
+  );
+}
+
+function AdminOperationsPanel({ language }: { language: Language }) {
+  const t = copy[language];
+  return (
+    <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+      <SectionCard eyebrow={t.catalogControl} title={t.serviceCatalog} action={language === 'en' ? 'Sortable price list' : 'Lista precios editable'}>
+        <DataTable
+          columns={[
+            { key: 'key', label: 'Clave', tone: 'strong' },
+            { key: 'division', label: 'División' },
+            { key: 'name', label: language === 'en' ? 'Service name' : 'Nombre servicio' },
+            { key: 'price1', label: 'Precio 1', tone: 'strong' },
+            { key: 'price2', label: 'Precio 2' },
+            { key: 'cost', label: 'Costo' },
+          ]}
+          rows={serviceCatalogRows}
+        />
+      </SectionCard>
+
+      <SectionCard eyebrow={t.collaboratorSecurity} title={t.permissionMatrix} action={language === 'en' ? 'Security tab' : 'Pestaña seguridad'}>
+        <DataTable
+          columns={[
+            { key: 'collaborator', label: language === 'en' ? 'Collaborator' : 'Colaborador', tone: 'strong' },
+            { key: 'branch', label: t.branch },
+            { key: 'caja', label: 'Caja' },
+            { key: 'notas', label: 'Notas' },
+            { key: 'inventario', label: language === 'en' ? 'Inventory' : 'Inventario' },
+            { key: 'seguridad', label: language === 'en' ? 'Security' : 'Seguridad' },
+          ]}
+          rows={permissionRows}
+        />
+      </SectionCard>
+    </section>
+  );
+}
+
+function ReportWorkflowPanel({ language }: { language: Language }) {
+  const t = copy[language];
+  return (
+    <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <SectionCard eyebrow={t.cashDesk} title={language === 'en' ? 'Branch adjustment controls' : 'Controles ajustes sucursal'} action="Caja chica · Corte · Notas">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {branchAdjustmentModules.map((item, index) => (
+            <div key={item} className={`rounded-[20px] border p-4 ${index === 1 ? 'border-rose-200 bg-rose-50 text-rose-950' : 'border-stone-200 bg-stone-50 text-slate-800'}`}>
+              <div className="text-sm font-semibold">{item}</div>
+              <div className="mt-2 text-xs leading-5 text-stone-500">
+                {index === 1
+                  ? language === 'en'
+                    ? 'Sensitive flow: requires branch, user and open shift.'
+                    : 'Flujo sensible: requiere sucursal, usuario y corte abierto.'
+                  : language === 'en'
+                    ? 'Prepared for audit trail and authorization.'
+                    : 'Preparado para bitácora y autorización.'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard eyebrow={t.reportForms} title={language === 'en' ? 'Administrative report workflows' : 'Flujos reportes administrativos'} action="Sucursal · Periodo · Colaborador">
+        <DataTable
+          columns={[
+            { key: 'title', label: language === 'en' ? 'Report' : 'Reporte', tone: 'strong' },
+            { key: 'branch', label: language === 'en' ? 'Filters' : 'Filtros' },
+            { key: 'output', label: language === 'en' ? 'Output' : 'Salida' },
+            { key: 'state', label: language === 'en' ? 'Status' : 'Estado' },
+          ]}
+          rows={reportWorkflows.map((item) => ({
+            ...item,
+            state: language === 'en' && item.state === 'Pendiente setup' ? 'Setup pending' : language === 'en' ? 'Mock ready' : item.state,
+          }))}
+        />
+      </SectionCard>
+    </section>
   );
 }
 
@@ -872,6 +1078,12 @@ export default function JldBackendPremiumMockup() {
           </section>
 
           <IntelligenceLayer language={language} />
+
+          <CentralSystemGrid language={language} onSelect={setActiveModule} />
+
+          <AdminOperationsPanel language={language} />
+
+          <ReportWorkflowPanel language={language} />
 
           <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <SectionCard eyebrow={t.analytics} title={t.financialAndPayment} action={t.exportableFunnel}>
