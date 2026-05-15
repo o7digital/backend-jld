@@ -1008,10 +1008,23 @@ function ReportWorkflowPanel({
                 const state = language === 'en' && item.state === 'Pendiente setup' ? 'Setup pending' : language === 'en' ? 'Mock ready' : item.state;
                 const isSelected = selectedWorkflow.title === item.title;
                 return (
-                  <tr key={item.title} className={`border-t border-stone-100 ${isSelected ? 'bg-amber-50' : 'bg-white odd:bg-stone-50/70'}`}>
+                  <tr
+                    key={item.title}
+                    onClick={() =>
+                      onSelect({
+                        title: item.title,
+                        category: language === 'en' ? 'Administrative report' : 'Reporte administrativo',
+                        filters: item.branch,
+                        output: item.output,
+                        state,
+                      })
+                    }
+                    className={`cursor-pointer border-t border-stone-100 transition hover:bg-amber-50 ${isSelected ? 'bg-amber-50' : 'bg-white odd:bg-stone-50/70'}`}
+                  >
                     <td className="px-4 py-3">
                       <button
                         type="button"
+                        aria-current={isSelected ? 'true' : undefined}
                         onClick={() =>
                           onSelect({
                             title: item.title,
@@ -1024,6 +1037,7 @@ function ReportWorkflowPanel({
                         className="text-left font-semibold text-slate-900 underline-offset-4 transition hover:text-amber-700 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-300"
                       >
                         {item.title}
+                        {isSelected ? <span className="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-amber-900">Activo</span> : null}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-stone-600">{item.branch}</td>
@@ -1037,6 +1051,7 @@ function ReportWorkflowPanel({
         </div>
 
         <WorkflowWorkspace
+          key={selectedWorkflow.title}
           language={language}
           selectedBranch={selectedBranch}
           selectedPeriod={selectedPeriod}
@@ -1066,6 +1081,23 @@ function WorkflowWorkspace({
   const isNote = workflow.title.toLowerCase().includes('nota');
   const isWithdrawal = workflow.title.toLowerCase().includes('retiro');
   const branchValue = selectedBranch.includes('Todas') || selectedBranch.includes('All') ? 'Polanco' : selectedBranch;
+  const [actionResult, setActionResult] = useState(
+    language === 'en'
+      ? 'Ready. Complete the form and launch an action.'
+      : 'Prêt. Remplis le formulaire et lance une action.',
+  );
+
+  function runWorkflowAction(action: 'save' | 'preview' | 'export') {
+    const actionLabel =
+      action === 'save'
+        ? isReport
+          ? 'Reporte generado'
+          : 'Movimiento guardado'
+        : action === 'preview'
+          ? 'Vista previa actualizada'
+          : 'Export listo';
+    setActionResult(`${actionLabel}: ${workflow.title} · ${branchValue} · ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`);
+  }
 
   return (
     <div id="workflow-detail" className={`mt-5 rounded-[24px] border p-5 ${workflow.sensitive ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
@@ -1097,15 +1129,30 @@ function WorkflowWorkspace({
             <FormField label="Comentario" value="Registro preparado para bitácora." type="text" wide />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+            <button
+              type="button"
+              onClick={() => runWorkflowAction('save')}
+              className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+            >
               {isReport ? 'Generar reporte' : 'Guardar movimiento'}
             </button>
-            <button type="button" className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700">
+            <button
+              type="button"
+              onClick={() => runWorkflowAction('preview')}
+              className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-300 hover:text-amber-700"
+            >
               Vista previa
             </button>
-            <button type="button" className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700">
+            <button
+              type="button"
+              onClick={() => runWorkflowAction('export')}
+              className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-300 hover:text-amber-700"
+            >
               Exportar
             </button>
+          </div>
+          <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+            {actionResult}
           </div>
         </div>
 
