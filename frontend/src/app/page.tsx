@@ -390,8 +390,8 @@ const metricTranslations: Record<string, { label: string; note: string }> = {
 };
 
 const branchSummary = [
-  { name: 'Polanco', sales: '$642,000', tickets: '386', avg: '$1,663', occupancy: '87%', mtd: '+7.4%' },
-  { name: 'Santa Fe', sales: '$581,400', tickets: '342', avg: '$1,700', occupancy: '82%', mtd: '+3.8%' },
+  { name: 'Polanco', sales: '$642,000', salesValue: 642000, tickets: '386', avg: '$1,663', occupancy: '87%', mtd: '+7.4%' },
+  { name: 'Santa Fe', sales: '$581,400', salesValue: 581400, tickets: '342', avg: '$1,700', occupancy: '82%', mtd: '+3.8%' },
 ];
 
 const inventoryAlerts = [
@@ -724,6 +724,71 @@ function MiniStat({ label, value, note }: { label: string; value: string; note: 
       <div className="mt-1 text-lg font-semibold text-slate-950">{value}</div>
       <div className="text-xs text-stone-400">{note}</div>
     </div>
+  );
+}
+
+function BranchSalesPanel({
+  branches,
+  selectedBranch,
+  selectedPeriod,
+  language,
+}: {
+  branches: typeof branchSummary;
+  selectedBranch: string;
+  selectedPeriod: string;
+  language: Language;
+}) {
+  const totalSales = branches.reduce((sum, branch) => sum + branch.salesValue, 0);
+  const totalTickets = branches.reduce((sum, branch) => sum + Number(branch.tickets.replace(/,/g, '')), 0);
+  const topSales = Math.max(...branchSummary.map((branch) => branch.salesValue));
+  return (
+    <section className="rounded-[30px] border border-stone-200 bg-white/90 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="text-xs font-bold uppercase tracking-[0.25em] text-amber-700">
+            {language === 'en' ? 'Branch sales' : 'Ventas por sucursal'}
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            {selectedBranch}
+          </h2>
+        </div>
+        <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-600">{selectedPeriod}</div>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[0.7fr_1.3fr]">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <MiniStat label={language === 'en' ? 'Total sales' : 'Ventas total'} value={`$${totalSales.toLocaleString('en-US')}`} note={language === 'en' ? 'selected view' : 'vista seleccionada'} />
+          <MiniStat label="Tickets" value={String(totalTickets)} note={language === 'en' ? 'issued tickets' : 'tickets emitidos'} />
+          <MiniStat label={language === 'en' ? 'Average ticket' : 'Ticket promedio'} value={`$${Math.round(totalSales / Math.max(totalTickets, 1)).toLocaleString('en-US')}`} note="MXN" />
+        </div>
+        <div className="grid gap-3">
+          {branches.map((branch) => {
+            const isSelected = selectedBranch === branch.name;
+            return (
+              <div
+                key={branch.name}
+                className={`rounded-[22px] border p-4 ${isSelected ? 'border-amber-300 bg-amber-50' : 'border-stone-200 bg-stone-50'}`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-lg font-semibold text-slate-950">{branch.name}</div>
+                    <div className="mt-1 text-sm text-stone-500">
+                      {branch.tickets} tickets · {branch.avg} · {language === 'en' ? 'Occupancy' : 'Ocupación'} {branch.occupancy}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-semibold text-slate-950">{branch.sales}</div>
+                    <div className="text-sm font-semibold text-emerald-700">MTD {branch.mtd}</div>
+                  </div>
+                </div>
+                <div className="mt-4 h-3 rounded-full bg-white">
+                  <div className="h-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-300" style={{ width: `${Math.max(14, (branch.salesValue / topSales) * 100)}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1080,6 +1145,11 @@ export default function JldBackendPremiumMockup() {
     return branchSummary.filter((branch) => branch.name === selectedBranch);
   }, [language, selectedBranch]);
 
+  const filteredBranchTableRows = useMemo(
+    () => filteredBranchSummary.map(({ salesValue, ...branch }) => branch),
+    [filteredBranchSummary],
+  );
+
   function handleLanguageChange(nextLanguage: Language) {
     setLanguage(nextLanguage);
     setSelectedBranch(branchOptions[nextLanguage][0]);
@@ -1208,6 +1278,13 @@ export default function JldBackendPremiumMockup() {
             </div>
           </section>
 
+          <BranchSalesPanel
+            branches={filteredBranchSummary}
+            selectedBranch={selectedBranch}
+            selectedPeriod={selectedPeriod}
+            language={language}
+          />
+
           <section id="dashboard" className="scroll-mt-28 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="rounded-[32px] border border-stone-200 bg-gradient-to-b from-white to-stone-50 p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
               <div className="text-xs font-bold uppercase tracking-[0.25em] text-amber-700">{t.mainEyebrow}</div>
@@ -1259,7 +1336,7 @@ export default function JldBackendPremiumMockup() {
                   { key: 'occupancy', label: language === 'en' ? 'Occupancy' : 'Ocupación' },
                   { key: 'mtd', label: 'MTD' },
                 ]}
-                rows={filteredBranchSummary}
+                rows={filteredBranchTableRows}
               />
             </SectionCard>
 
