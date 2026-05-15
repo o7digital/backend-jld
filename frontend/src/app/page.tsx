@@ -376,6 +376,8 @@ type WorkflowSelection = {
   sensitive?: boolean;
 };
 
+const collaborators = ['Abril Zarco', 'Ana Maria Alvarado', 'Juan Resendiz', 'Hilda Cruz', 'Olivier'];
+
 const dashboardMetrics = [
   { label: 'Ventas del mes', value: '$1,223,400', note: 'Polanco + Santa Fe', delta: '+5.8%', tone: 'good' },
   { label: 'Ticket promedio', value: '$1,680', note: '728 tickets emitidos', delta: '+4.1%', tone: 'good' },
@@ -943,10 +945,14 @@ function AdminOperationsPanel({ language }: { language: Language }) {
 
 function ReportWorkflowPanel({
   language,
+  selectedBranch,
+  selectedPeriod,
   selectedWorkflow,
   onSelect,
 }: {
   language: Language;
+  selectedBranch: string;
+  selectedPeriod: string;
   selectedWorkflow: WorkflowSelection;
   onSelect: (workflow: WorkflowSelection) => void;
 }) {
@@ -1030,19 +1036,118 @@ function ReportWorkflowPanel({
           </table>
         </div>
 
-        <div id="workflow-detail" className={`mt-5 rounded-[24px] border p-5 ${selectedWorkflow.sensitive ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">
-            {language === 'en' ? 'Selected workflow' : 'Workflow sélectionné'}
-          </div>
-          <div className="mt-2 text-xl font-semibold text-slate-950">{selectedWorkflow.title}</div>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            <MiniStat label={language === 'en' ? 'Filters' : 'Filtres'} value={selectedWorkflow.filters} note={selectedWorkflow.category} />
-            <MiniStat label={language === 'en' ? 'Output' : 'Sortie'} value={selectedWorkflow.output} note={language === 'en' ? 'Prepared for API' : 'Préparé pour API'} />
-            <MiniStat label={language === 'en' ? 'Status' : 'État'} value={selectedWorkflow.state} note={selectedWorkflow.sensitive ? 'Validación requerida' : 'Mock activo'} />
-          </div>
-        </div>
+        <WorkflowWorkspace
+          language={language}
+          selectedBranch={selectedBranch}
+          selectedPeriod={selectedPeriod}
+          workflow={selectedWorkflow}
+        />
       </SectionCard>
     </section>
+  );
+}
+
+function WorkflowWorkspace({
+  language,
+  selectedBranch,
+  selectedPeriod,
+  workflow,
+}: {
+  language: Language;
+  selectedBranch: string;
+  selectedPeriod: string;
+  workflow: WorkflowSelection;
+}) {
+  const isReport = workflow.category.includes('Reporte') || workflow.category.includes('report');
+  const isLoan = workflow.title.toLowerCase().includes('préstamo') || workflow.title.toLowerCase().includes('prestamo');
+  const isTip = workflow.title.toLowerCase().includes('propina');
+  const isCollaboratorSale = workflow.title.toLowerCase().includes('venta al colaborador');
+  const isCashCut = workflow.title.toLowerCase().includes('corte');
+  const isNote = workflow.title.toLowerCase().includes('nota');
+  const isWithdrawal = workflow.title.toLowerCase().includes('retiro');
+  const branchValue = selectedBranch.includes('Todas') || selectedBranch.includes('All') ? 'Polanco' : selectedBranch;
+
+  return (
+    <div id="workflow-detail" className={`mt-5 rounded-[24px] border p-5 ${workflow.sensitive ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">
+            {language === 'en' ? 'Functional screen' : 'Écran fonctionnel'}
+          </div>
+          <div className="mt-2 text-2xl font-semibold text-slate-950">{workflow.title}</div>
+          <div className="mt-1 text-sm text-stone-600">{workflow.output}</div>
+        </div>
+        <div className="rounded-2xl border border-white bg-white/70 px-4 py-2 text-sm font-semibold text-stone-700">{workflow.state}</div>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.8fr]">
+        <div className="rounded-[22px] border border-stone-200 bg-white p-4">
+          <div className="text-sm font-semibold text-slate-950">{language === 'en' ? 'Capture' : 'Capture'}</div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <FormField label="Sucursal" value={branchValue} type="select" options={['Polanco', 'Santa Fe']} />
+            <FormField label="Periodo" value={selectedPeriod} type="text" />
+            {(isReport || isLoan || isTip || isCollaboratorSale) ? <FormField label="Colaborador" value={collaborators[0]} type="select" options={collaborators} /> : null}
+            {isCashCut ? <FormField label="Saldo inicial caja chica" value="$5,000.00" type="text" /> : null}
+            {isWithdrawal ? <FormField label="Monto retiro" value="$1,250.00" type="text" /> : null}
+            {isLoan ? <FormField label="Monto préstamo / saldo" value="$3,500.00" type="text" /> : null}
+            {isTip ? <FormField label="Propina calculada" value="$420.00" type="text" /> : null}
+            {isCollaboratorSale ? <FormField label="Producto vendido" value="Kerastase Gloss Absolu 250ml" type="text" /> : null}
+            {isNote ? <FormField label="Folio nota" value="N-2026-0418" type="text" /> : null}
+            <FormField label="Autorizado por" value="Dirección" type="select" options={['Dirección', 'Operación', 'Admin']} />
+            <FormField label="Comentario" value="Registro preparado para bitácora." type="text" wide />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+              {isReport ? 'Generar reporte' : 'Guardar movimiento'}
+            </button>
+            <button type="button" className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700">
+              Vista previa
+            </button>
+            <button type="button" className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700">
+              Exportar
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-[22px] border border-stone-200 bg-white p-4">
+          <div className="text-sm font-semibold text-slate-950">{language === 'en' ? 'Result preview' : 'Résultat prévu'}</div>
+          <div className="mt-4 grid gap-3">
+            <MiniStat label="Filtres" value={workflow.filters} note={workflow.category} />
+            <MiniStat label="Salida" value={workflow.output} note="Listo para conectar API Railway" />
+            <MiniStat label="Bitácora" value={workflow.sensitive ? 'Requiere aprobación' : 'Auto-registro'} note="Usuario, fecha, sucursal, folio" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FormField({
+  label,
+  value,
+  type,
+  options = [],
+  wide = false,
+}: {
+  label: string;
+  value: string;
+  type: 'select' | 'text';
+  options?: string[];
+  wide?: boolean;
+}) {
+  return (
+    <label className={`block ${wide ? 'md:col-span-2' : ''}`}>
+      <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">{label}</span>
+      {type === 'select' ? (
+        <select defaultValue={value} className="mt-2 w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-amber-400">
+          {options.map((option) => (
+            <option key={option}>{option}</option>
+          ))}
+        </select>
+      ) : (
+        <input defaultValue={value} className="mt-2 w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-amber-400" />
+      )}
+    </label>
   );
 }
 
@@ -1259,9 +1364,6 @@ export default function JldBackendPremiumMockup() {
     setActiveModule('Configuración');
     setOpenedModuleDetail(workflow.title);
     setTimedActionMessage(`${t.actionReady}: ${workflow.title}`);
-    window.setTimeout(() => {
-      document.getElementById('workflow-detail')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 50);
   }
 
   function handleViewModeChange(nextViewMode: string) {
@@ -1451,6 +1553,8 @@ export default function JldBackendPremiumMockup() {
           <div id="configuracion" className="scroll-mt-28">
             <ReportWorkflowPanel
               language={language}
+              selectedBranch={selectedBranch}
+              selectedPeriod={selectedPeriod}
               selectedWorkflow={selectedWorkflow}
               onSelect={handleSelectWorkflow}
             />
