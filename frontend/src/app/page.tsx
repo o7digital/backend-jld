@@ -245,6 +245,18 @@ const navigationItems = [
   { es: 'Configuración', en: 'Settings' },
 ];
 
+const navigationTargets: Record<string, string> = {
+  Dashboard: 'dashboard',
+  'Análisis de ventas': 'ventas',
+  Productividad: 'productividad',
+  Producto: 'producto',
+  Catálogos: 'catalogos',
+  Clientes: 'clientes',
+  'IA / Hugging Face': 'ia',
+  Configuración: 'configuracion',
+  Administrativo: 'admin',
+};
+
 const salesModules = [
   'Resumen financiero',
   'Concentrado ventas',
@@ -450,9 +462,26 @@ const modulePreviewData = [
   { module: 'Seguridad colaboradores', owner: 'Admin', status: 'Listo mock', metric: '17 permisos' },
 ];
 
-function Header({ activeModule, language, onToggleSidebar }: { activeModule: string; language: Language; onToggleSidebar: () => void }) {
+function Header({
+  activeModule,
+  language,
+  viewMode,
+  isLoggedIn,
+  onToggleSidebar,
+  onViewModeChange,
+  onToggleLogin,
+}: {
+  activeModule: string;
+  language: Language;
+  viewMode: string;
+  isLoggedIn: boolean;
+  onToggleSidebar: () => void;
+  onViewModeChange: (value: string) => void;
+  onToggleLogin: () => void;
+}) {
   const t = copy[language];
   const activeModuleLabel = navigationItems.find((item) => item.es === activeModule)?.[language] ?? activeModule;
+  const viewOptions = viewModeOptions[language];
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-black text-white shadow-2xl">
       <div className="flex min-h-20 items-center justify-between gap-4 px-4 lg:px-6">
@@ -472,14 +501,39 @@ function Header({ activeModule, language, onToggleSidebar }: { activeModule: str
           </div>
         </div>
         <div className="hidden items-center gap-2 lg:flex">
-          {[t.salonDirection, t.operation, t.admin].map((item) => (
-            <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300">
+          {viewOptions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onViewModeChange(item)}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                viewMode === item
+                  ? 'border-amber-300 bg-amber-300 text-black shadow-lg shadow-amber-500/20'
+                  : 'border-white/20 bg-white/10 text-white hover:border-amber-200 hover:bg-white/15'
+              }`}
+            >
               {item}
-            </span>
+            </button>
           ))}
         </div>
-        <div className="rounded-2xl border border-amber-200/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
-          {t.activeModule}: <span className="ml-1 font-semibold text-white">{activeModuleLabel}</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onToggleLogin}
+            className={`hidden rounded-2xl border px-4 py-2 text-left text-xs transition md:block ${
+              isLoggedIn
+                ? 'border-emerald-300/30 bg-emerald-400/10 text-emerald-100'
+                : 'border-amber-300/40 bg-amber-300 text-black'
+            }`}
+          >
+            <span className="block font-semibold">{isLoggedIn ? 'demo.cliente@jld.local' : 'Login usuario'}</span>
+            <span className={`block ${isLoggedIn ? 'text-emerald-200/80' : 'text-black/60'}`}>
+              {isLoggedIn ? 'Sesión activa' : 'Entrar al sistema'}
+            </span>
+          </button>
+          <div className="rounded-2xl border border-amber-200/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
+            {t.activeModule}: <span className="ml-1 font-semibold text-white">{activeModuleLabel}</span>
+          </div>
         </div>
       </div>
     </header>
@@ -974,6 +1028,7 @@ export default function JldBackendPremiumMockup() {
   const [viewMode, setViewMode] = useState(viewModeOptions.es[0]);
   const [showExecutivePreview, setShowExecutivePreview] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const t = copy[language];
 
   const filteredBranchSummary = useMemo(() => {
@@ -991,11 +1046,39 @@ export default function JldBackendPremiumMockup() {
   function handleSelectModule(item: string) {
     setActiveModule(item);
     setSidebarOpen(false);
+    const targetId = navigationTargets[item] ?? 'dashboard';
+    window.setTimeout(() => {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  function handleViewModeChange(nextViewMode: string) {
+    setViewMode(nextViewMode);
+    if (nextViewMode === viewModeOptions[language][2]) {
+      setActiveModule('Configuración');
+      document.getElementById('configuracion')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (nextViewMode === viewModeOptions[language][1]) {
+      setActiveModule('Productividad');
+      document.getElementById('productividad')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    setActiveModule('Dashboard');
+    document.getElementById('dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-100 via-slate-50 to-slate-100 text-slate-950">
-      <Header activeModule={activeModule} language={language} onToggleSidebar={() => setSidebarOpen((value) => !value)} />
+      <Header
+        activeModule={activeModule}
+        language={language}
+        viewMode={viewMode}
+        isLoggedIn={isLoggedIn}
+        onToggleSidebar={() => setSidebarOpen((value) => !value)}
+        onViewModeChange={handleViewModeChange}
+        onToggleLogin={() => setIsLoggedIn((value) => !value)}
+      />
       {sidebarOpen ? <button type="button" aria-label={t.closeNavigation} onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-black/40 lg:hidden" /> : null}
 
       <div className="lg:grid lg:grid-cols-[18rem_1fr]">
@@ -1009,11 +1092,11 @@ export default function JldBackendPremiumMockup() {
             language={language}
             onBranchChange={setSelectedBranch}
             onPeriodChange={setSelectedPeriod}
-            onViewModeChange={setViewMode}
+            onViewModeChange={handleViewModeChange}
             onLanguageChange={handleLanguageChange}
           />
 
-          <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+          <section id="dashboard" className="scroll-mt-28 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="rounded-[32px] border border-stone-200 bg-gradient-to-b from-white to-stone-50 p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
               <div className="text-xs font-bold uppercase tracking-[0.25em] text-amber-700">{t.mainEyebrow}</div>
               <div className="mt-3 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -1073,15 +1156,23 @@ export default function JldBackendPremiumMockup() {
             </SectionCard>
           </section>
 
-          <IntelligenceLayer language={language} />
+          <div id="ia" className="scroll-mt-28">
+            <IntelligenceLayer language={language} />
+          </div>
 
-          <CentralSystemGrid language={language} onSelect={setActiveModule} />
+          <div id="admin" className="scroll-mt-28">
+            <CentralSystemGrid language={language} onSelect={handleSelectModule} />
+          </div>
 
-          <AdminOperationsPanel language={language} />
+          <div id="catalogos" className="scroll-mt-28">
+            <AdminOperationsPanel language={language} />
+          </div>
 
-          <ReportWorkflowPanel language={language} />
+          <div id="configuracion" className="scroll-mt-28">
+            <ReportWorkflowPanel language={language} />
+          </div>
 
-          <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <section id="ventas" className="scroll-mt-28 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <SectionCard eyebrow={t.analytics} title={t.financialAndPayment} action={t.exportableFunnel}>
               <div className="grid gap-4 md:grid-cols-2">
                 <MiniStat label={t.revenueTotal} value="$305,836.00" note="01-04-2026 → 23-04-2026" />
@@ -1109,7 +1200,7 @@ export default function JldBackendPremiumMockup() {
             </SectionCard>
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-3">
+          <section id="productividad" className="scroll-mt-28 grid gap-6 xl:grid-cols-3">
             <SectionCard eyebrow={t.collaboratorTop} title={t.productivityIndividual} className="xl:col-span-1">
               <div className="space-y-3">
                 {collaboratorRankingData.slice(0, 4).map((person, index) => (
@@ -1148,11 +1239,15 @@ export default function JldBackendPremiumMockup() {
             </SectionCard>
           </section>
 
-          <SectionCard eyebrow={t.functionalMap} title={t.moduleCoverage} action={language === 'en' ? 'Sales analysis · Productivity · Product · Catalogs' : 'Análisis · Productividad · Producto · Catálogos'}>
-            <ModuleGrid sections={moduleSectionsData} activeModule={activeModule} onSelect={setActiveModule} />
-          </SectionCard>
+          <div id="producto" className="scroll-mt-28">
+            <SectionCard eyebrow={t.functionalMap} title={t.moduleCoverage} action={language === 'en' ? 'Sales analysis · Productivity · Product · Catalogs' : 'Análisis · Productividad · Producto · Catálogos'}>
+              <ModuleGrid sections={moduleSectionsData} activeModule={activeModule} onSelect={handleSelectModule} />
+            </SectionCard>
+          </div>
 
-          <ModulePreview language={language} />
+          <div id="clientes" className="scroll-mt-28">
+            <ModulePreview language={language} />
+          </div>
         </main>
       </div>
     </div>
