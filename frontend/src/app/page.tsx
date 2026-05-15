@@ -120,6 +120,7 @@ const copy = {
     serviceCatalog: 'Catálogo de servicios',
     permissionMatrix: 'Matriz de permisos',
     pendingSetup: 'Pendiente setup',
+    refreshed: 'Actualizado',
   },
   en: {
     admin: 'Admin',
@@ -216,6 +217,7 @@ const copy = {
     serviceCatalog: 'Service catalog',
     permissionMatrix: 'Permission matrix',
     pendingSetup: 'Setup pending',
+    refreshed: 'Updated',
   },
 } satisfies Record<Language, Record<string, string>>;
 
@@ -606,6 +608,10 @@ function GlobalFilters({
   onPeriodChange,
   onViewModeChange,
   onLanguageChange,
+  onExport,
+  onPrint,
+  onRefresh,
+  lastSyncLabel,
 }: {
   selectedBranch: string;
   selectedPeriod: string;
@@ -615,8 +621,17 @@ function GlobalFilters({
   onPeriodChange: (value: string) => void;
   onViewModeChange: (value: string) => void;
   onLanguageChange: (value: Language) => void;
+  onExport: () => void;
+  onPrint: () => void;
+  onRefresh: () => void;
+  lastSyncLabel: string;
 }) {
   const t = copy[language];
+  const actions = [
+    { label: 'Export Excel', handler: onExport },
+    { label: 'Print', handler: onPrint },
+    { label: 'Refresh', handler: onRefresh },
+  ];
   return (
     <section className="rounded-[28px] border border-stone-200 bg-white/90 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -627,12 +642,19 @@ function GlobalFilters({
           <SelectControl label="Language" value={language === 'es' ? 'Español' : 'English'} options={['Español', 'English']} onChange={(value) => onLanguageChange(value === 'Español' ? 'es' : 'en')} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {['Export Excel', 'Print', 'Refresh'].map((action) => (
-            <button key={action} type="button" className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">
-              {action}
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              onClick={action.handler}
+              className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              {action.label}
             </button>
           ))}
-          <span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">{t.lastSync}</span>
+          <span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+            {t.refreshed} · {lastSyncLabel}
+          </span>
         </div>
       </div>
     </section>
@@ -1026,6 +1048,7 @@ export default function JldBackendPremiumMockup() {
   const [selectedPeriod, setSelectedPeriod] = useState(periodOptions.es[0]);
   const [activeModule, setActiveModule] = useState('Dashboard');
   const [viewMode, setViewMode] = useState(viewModeOptions.es[0]);
+  const [lastSyncLabel, setLastSyncLabel] = useState('09:42');
   const [showExecutivePreview, setShowExecutivePreview] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -1068,6 +1091,46 @@ export default function JldBackendPremiumMockup() {
     document.getElementById('dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  function handleExport() {
+    const rows = [
+      ['Section', 'Metric', 'Value', 'Detail'],
+      ...dashboardMetrics.map((item) => ['Dashboard', item.label, item.value, item.note]),
+      ...filteredBranchSummary.map((branch) => ['Sucursal', branch.name, branch.sales, `Tickets ${branch.tickets} | Ticket ${branch.avg} | Ocupacion ${branch.occupancy} | MTD ${branch.mtd}`]),
+      ...inventoryAlerts.map((alert) => ['Inventario', alert.product, `${alert.stock}`, `${alert.branch} | Min ${alert.min} | ${alert.status}`]),
+      ...collaboratorRankingData.map((person) => ['Productividad', person.name, person.sales, `${person.branch} | Servicios ${person.services} | Bono ${person.bonus}`]),
+    ];
+    const csv = rows
+      .map((row) =>
+        row
+          .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+          .join(','),
+      )
+      .join('\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `jld-dashboard-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function handlePrint() {
+    window.print();
+  }
+
+  function handleRefresh() {
+    const now = new Date();
+    setLastSyncLabel(
+      now.toLocaleTimeString(language === 'en' ? 'en-US' : 'es-MX', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-100 via-slate-50 to-slate-100 text-slate-950">
       <Header
@@ -1094,6 +1157,10 @@ export default function JldBackendPremiumMockup() {
             onPeriodChange={setSelectedPeriod}
             onViewModeChange={handleViewModeChange}
             onLanguageChange={handleLanguageChange}
+            onExport={handleExport}
+            onPrint={handlePrint}
+            onRefresh={handleRefresh}
+            lastSyncLabel={lastSyncLabel}
           />
 
           <section id="dashboard" className="scroll-mt-28 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
