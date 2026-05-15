@@ -32,8 +32,8 @@ const copy = {
     alertAge: 'Antig.',
     alertLevel: 'Riesgo',
     alertMain: 'Alerta principal del día',
-    alertMainBody: 'IA recomienda transferir inventario desde Condesa y generar orden de compra antes de 18:00.',
-    alertMainTitle: 'Riesgo de ruptura Redken Acidic Bonding en Pedregal.',
+    alertMainBody: 'IA recomienda transferir inventario entre Polanco y Santa Fe y generar orden de compra antes de 18:00.',
+    alertMainTitle: 'Riesgo de ruptura Brazilian Acai Ionic Bonding Spray en Santa Fe.',
     analytics: 'Análisis de ventas',
     amount: 'Importe',
     appliedIntelligence: 'inteligencia aplicada',
@@ -128,8 +128,8 @@ const copy = {
     alertAge: 'Age',
     alertLevel: 'Risk',
     alertMain: "Today's main alert",
-    alertMainBody: 'AI recommends transferring stock from Condesa and creating a purchase order before 18:00.',
-    alertMainTitle: 'Stockout risk for Redken Acidic Bonding in Pedregal.',
+    alertMainBody: 'AI recommends transferring stock between Polanco and Santa Fe and creating a purchase order before 18:00.',
+    alertMainTitle: 'Stockout risk for Brazilian Acai Ionic Bonding Spray in Santa Fe.',
     analytics: 'Sales analysis',
     amount: 'Amount',
     appliedIntelligence: 'applied intelligence',
@@ -220,8 +220,8 @@ const copy = {
 } satisfies Record<Language, Record<string, string>>;
 
 const branchOptions = {
-  es: ['Todas las sucursales', 'Polanco', 'Santa Fe', 'Pedregal', 'Satélite', 'Interlomas', 'Condesa'],
-  en: ['All branches', 'Polanco', 'Santa Fe', 'Pedregal', 'Satélite', 'Interlomas', 'Condesa'],
+  es: ['Todas las sucursales', 'Polanco', 'Santa Fe'],
+  en: ['All branches', 'Polanco', 'Santa Fe'],
 } satisfies Record<Language, string[]>;
 
 const periodOptions = {
@@ -328,18 +328,18 @@ const centralModules: CentralModule[] = [
 ];
 
 const serviceCatalogRows = [
-  { key: 'BALAYAGE 6', division: 'BALAYAGE', name: 'BALAYAGE DENSIDAD', price1: '$5,900.00', price2: '$0.00', cost: '$0.00' },
-  { key: 'BALAYAGE 2', division: 'BALAYAGE', name: 'BALAYAGE CORTO CON DENSIDAD AL OIDO', price1: '$1,900.00', price2: '$0.00', cost: '$0.00' },
-  { key: 'BALAYAGE 3', division: 'BALAYAGE', name: 'BALAYAGE MEDIANO SIN DENSIDAD AL HOMBRO', price1: '$2,450.00', price2: '$0.00', cost: '$0.00' },
-  { key: 'BARBERIA 2', division: 'BARBERIA', name: 'ARREGLO MEDIA BARBA', price1: '$500.00', price2: '$0.00', cost: '$0.00' },
-  { key: 'CARGO 100', division: 'CARGO A HABITACION', name: 'CARGO A HABITACION', price1: '$100.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BRAZILIAN 1', division: 'ALACIADO', name: 'BRAZILIAN RECARGA CORTO', price1: '$1,000.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BRAZILIAN 2', division: 'ALACIADO', name: 'BRAZILIAN RECARGA MEDIA ESPALDA', price1: '$1,500.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BRAZILIAN 3', division: 'ALACIADO', name: 'BRAZILIAN RECARGA LARGO', price1: '$2,000.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BRAZILIAN 4', division: 'ALACIADO', name: 'BRAZILIAN SERVICIO CORTO', price1: '$2,500.00', price2: '$0.00', cost: '$0.00' },
+  { key: 'BRAZILIAN 5', division: 'ALACIADO', name: 'BRAZILIAN CORTO AL HOMBRO', price1: '$3,000.00', price2: '$0.00', cost: '$0.00' },
 ];
 
 const permissionRows = [
-  { collaborator: 'Abril Zarco', branch: 'Santa Fe', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Limitado' },
-  { collaborator: 'Ana Maria Alvarado', branch: 'Santa Fe', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
+  { collaborator: 'Abril Zarco', branch: 'Polanco', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Limitado' },
+  { collaborator: 'Ana Maria Alvarado', branch: 'Polanco', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
   { collaborator: 'Juan Resendiz', branch: 'Polanco', caja: 'Activo', notas: 'Limitado', inventario: 'Activo', seguridad: 'Limitado' },
-  { collaborator: 'Olivier', branch: 'Polanco', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
+  { collaborator: 'Hilda Cruz', branch: 'Polanco', caja: 'Activo', notas: 'Activo', inventario: 'Activo', seguridad: 'Activo' },
 ];
 
 const reportWorkflows = [
@@ -374,17 +374,13 @@ const metricTranslations: Record<string, { label: string; note: string }> = {
 const branchSummary = [
   { name: 'Polanco', sales: '$642,000', tickets: '386', avg: '$1,663', occupancy: '87%', mtd: '+7.4%' },
   { name: 'Santa Fe', sales: '$581,400', tickets: '342', avg: '$1,700', occupancy: '82%', mtd: '+3.8%' },
-  { name: 'Pedregal', sales: '$366,800', tickets: '228', avg: '$1,609', occupancy: '76%', mtd: '-2.1%' },
-  { name: 'Satélite', sales: '$249,500', tickets: '167', avg: '$1,494', occupancy: '69%', mtd: '-6.9%' },
-  { name: 'Interlomas', sales: '$214,200', tickets: '141', avg: '$1,519', occupancy: '71%', mtd: '+1.5%' },
-  { name: 'Condesa', sales: '$196,700', tickets: '129', avg: '$1,525', occupancy: '74%', mtd: '+4.2%' },
 ];
 
 const inventoryAlerts = [
-  { product: 'Kérastase Gloss Absolu 250ml', branch: 'Polanco', stock: 3, min: 8, status: 'Reposición urgente', severity: 'Alta' },
-  { product: "L'Oréal Metal Detox Mask", branch: 'Santa Fe', stock: 5, min: 10, status: 'Compra sugerida', severity: 'Media' },
-  { product: 'Redken Acidic Bonding', branch: 'Pedregal', stock: 2, min: 6, status: 'Riesgo de ruptura', severity: 'Alta' },
-  { product: 'Brazilian Ionic Bonding Spray', branch: 'Satélite', stock: 7, min: 12, status: 'Monitorear', severity: 'Baja' },
+  { product: 'Original Smoothing Solution 1L', branch: 'Santa Fe', stock: 1, min: 2, status: 'Reposición urgente', severity: 'Alta' },
+  { product: 'Daily Smoothing Serum 240ml', branch: 'Santa Fe', stock: 2, min: 1, status: 'Monitorear', severity: 'Baja' },
+  { product: 'Acai Ionic Bonding Spray 100ml', branch: 'Santa Fe', stock: 0, min: 2, status: 'Riesgo de ruptura', severity: 'Alta' },
+  { product: 'Acai Ionic Bonding Spray 350ml', branch: 'Santa Fe', stock: 3, min: 2, status: 'Compra sugerida', severity: 'Media' },
 ];
 
 const creditsData = [
@@ -422,10 +418,10 @@ const topServicesData = [
 
 const collaboratorRankingData = [
   { name: 'Jorge Martínez', branch: 'Polanco', services: 132, sales: '$96,420', bonus: '$11,800', efficiency: '94%' },
-  { name: 'Lizbeth Torres', branch: 'Santa Fe', services: 118, sales: '$84,160', bonus: '$10,200', efficiency: '91%' },
+  { name: 'Hilda Cruz', branch: 'Santa Fe', services: 118, sales: '$84,160', bonus: '$10,200', efficiency: '91%' },
   { name: 'Ana Romelia Gutiérrez', branch: 'Polanco', services: 111, sales: '$79,540', bonus: '$9,480', efficiency: '89%' },
-  { name: 'Selene Flores', branch: 'Pedregal', services: 98, sales: '$69,330', bonus: '$8,150', efficiency: '86%' },
-  { name: 'Mariana Rivas', branch: 'Condesa', services: 91, sales: '$61,200', bonus: '$7,450', efficiency: '84%' },
+  { name: 'Abril Zarco', branch: 'Polanco', services: 98, sales: '$69,330', bonus: '$8,150', efficiency: '86%' },
+  { name: 'Ana Maria Alvarado', branch: 'Polanco', services: 91, sales: '$61,200', bonus: '$7,450', efficiency: '84%' },
 ];
 
 const moduleSectionsData: ModuleSection[] = [
