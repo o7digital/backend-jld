@@ -368,13 +368,13 @@ const reportWorkflows = [
 ];
 
 const dashboardMetrics = [
-  { label: 'Ventas del mes', value: '$1.84M', note: 'MTD vs mes anterior', delta: '-6.2%', tone: 'risk' },
-  { label: 'Ticket promedio', value: '$1,285', note: 'promedio por ticket', delta: '+4.1%', tone: 'good' },
-  { label: 'Clientes activos', value: '2,486', note: 'últimos 90 días', delta: '+8.8%', tone: 'good' },
+  { label: 'Ventas del mes', value: '$1,223,400', note: 'Polanco + Santa Fe', delta: '+5.8%', tone: 'good' },
+  { label: 'Ticket promedio', value: '$1,680', note: '728 tickets emitidos', delta: '+4.1%', tone: 'good' },
+  { label: 'Clientes activos', value: '728', note: 'tickets del periodo', delta: '+8.2%', tone: 'good' },
   { label: 'Consumo interno', value: '$86,420', note: 'controlado por sucursal', delta: '-3.2%', tone: 'good' },
-  { label: 'Remises del mes', value: '$142,300', note: '12.4% sobre venta', delta: '+1.7%', tone: 'warn' },
-  { label: 'Ventas a crédito', value: '$58,930', note: 'saldo pendiente', delta: '+9.3%', tone: 'risk' },
-  { label: 'Ocupación', value: '81%', note: 'agenda consolidada', delta: '+5 pts', tone: 'good' },
+  { label: 'Remises del mes', value: '$151,302', note: '12.4% sobre venta', delta: '+1.7%', tone: 'warn' },
+  { label: 'Ventas a crédito', value: '$58,930', note: 'saldo pendiente', delta: '+4.8%', tone: 'risk' },
+  { label: 'Ocupación', value: '85%', note: 'promedio ponderado', delta: '+5 pts', tone: 'good' },
   { label: 'Rotación producto', value: '3.8x', note: 'sell-through mensual', delta: '+0.4x', tone: 'neutral' },
 ];
 
@@ -452,10 +452,10 @@ const moduleSectionsData: ModuleSection[] = [
 ];
 
 const monthlyComparison = [
-  { label: 'Ventas MTD', current: '$1.84M', previous: '$1.96M', delta: '-6.2%' },
-  { label: 'Tickets', current: '1,393', previous: '1,287', delta: '+8.2%' },
-  { label: 'Ticket promedio', current: '$1,285', previous: '$1,234', delta: '+4.1%' },
-  { label: 'Crédito pendiente', current: '$58,930', previous: '$53,900', delta: '+9.3%' },
+  { label: 'Ventas MTD', current: '$1,223,400', previous: '$1,156,000', delta: '+5.8%' },
+  { label: 'Tickets', current: '728', previous: '673', delta: '+8.2%' },
+  { label: 'Ticket promedio', current: '$1,680', previous: '$1,718', delta: '-2.2%' },
+  { label: 'Crédito pendiente', current: '$58,930', previous: '$56,250', delta: '+4.8%' },
 ];
 
 const modulePreviewData = [
@@ -1316,7 +1316,7 @@ export default function JldBackendPremiumMockup() {
               <div className="text-xs font-bold uppercase tracking-[0.25em] text-amber-200">{t.decisionReading}</div>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight">{t.priorityDecisions}</h2>
               <div className="mt-5 grid gap-3">
-                <MiniDecision label={t.monthlySales} value="$1.84M" note={language === 'en' ? 'High ticket pressure, stable volume.' : 'Presión por ticket alto, volumen estable.'} />
+                <MiniDecision label={t.monthlySales} value="$1,223,400" note={language === 'en' ? 'Polanco and Santa Fe consolidated.' : 'Consolidado Polanco y Santa Fe.'} />
                 <MiniDecision label={t.creditRisk} value="$58,930" note={language === 'en' ? '4 folios require follow-up.' : '4 folios requieren seguimiento.'} />
                 <MiniDecision label={language === 'en' ? 'AI recommends' : 'IA recomienda'} value={t.productRestock} note={t.productRestockNote} />
               </div>
