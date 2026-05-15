@@ -24,6 +24,8 @@ type CentralModule = {
 
 type Language = 'es' | 'en';
 
+const SYSTEM_IN_CONSTRUCTION = true;
+
 const copy = {
   es: {
     admin: 'Admin',
@@ -1351,7 +1353,60 @@ function ModulePreview({ language }: { language: Language }) {
   );
 }
 
+function ConstructionMode() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-black px-6 text-white">
+      <section className="w-full max-w-4xl rounded-[36px] border border-amber-300/30 bg-gradient-to-br from-zinc-950 via-black to-stone-950 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)] md:p-12">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/15 bg-white/5">
+                <span className="text-3xl font-black tracking-[-0.18em]">JD</span>
+              </div>
+              <div>
+                <div className="text-2xl font-semibold">Jean Louis David</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-[0.35em] text-amber-200">
+                  Sistema Central JLD
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10 text-xs font-bold uppercase tracking-[0.35em] text-amber-300">
+              Mode construction
+            </div>
+            <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
+              Le système est temporairement coupé.
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-stone-300">
+              Nous préparons les modules opérationnels, les catalogues, les rapports et la connexion Railway. L’accès client sera réouvert après validation.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-300/20 bg-amber-300 px-6 py-5 text-black">
+            <div className="text-sm font-bold uppercase tracking-[0.18em]">Statut</div>
+            <div className="mt-2 text-2xl font-semibold">En construction</div>
+            <div className="mt-1 text-sm text-black/70">Accès dashboard désactivé</div>
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-3 md:grid-cols-3">
+          {['Catalogues', 'Modules admin', 'Données Railway'].map((item) => (
+            <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
+              <div className="text-sm font-semibold text-white">{item}</div>
+              <div className="mt-1 text-xs uppercase tracking-[0.2em] text-amber-200">en préparation</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default function JldBackendPremiumMockup() {
+  if (SYSTEM_IN_CONSTRUCTION) {
+    return <ConstructionMode />;
+  }
+
   const [language, setLanguage] = useState<Language>('es');
   const [selectedBranch, setSelectedBranch] = useState(branchOptions.es[0]);
   const [selectedPeriod, setSelectedPeriod] = useState(periodOptions.es[0]);
