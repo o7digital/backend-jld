@@ -121,6 +121,8 @@ const copy = {
     permissionMatrix: 'Matriz de permisos',
     pendingSetup: 'Pendiente setup',
     refreshed: 'Actualizado',
+    actionReady: 'Acción ejecutada',
+    moduleOpened: 'Módulo abierto',
   },
   en: {
     admin: 'Admin',
@@ -218,6 +220,8 @@ const copy = {
     permissionMatrix: 'Permission matrix',
     pendingSetup: 'Setup pending',
     refreshed: 'Updated',
+    actionReady: 'Action completed',
+    moduleOpened: 'Module opened',
   },
 } satisfies Record<Language, Record<string, string>>;
 
@@ -612,6 +616,7 @@ function GlobalFilters({
   onPrint,
   onRefresh,
   lastSyncLabel,
+  actionMessage,
 }: {
   selectedBranch: string;
   selectedPeriod: string;
@@ -625,6 +630,7 @@ function GlobalFilters({
   onPrint: () => void;
   onRefresh: () => void;
   lastSyncLabel: string;
+  actionMessage: string;
 }) {
   const t = copy[language];
   const actions = [
@@ -657,6 +663,11 @@ function GlobalFilters({
           </span>
         </div>
       </div>
+      {actionMessage ? (
+        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+          {actionMessage}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -745,7 +756,15 @@ function DataTable<T extends Record<string, string>>({ columns, rows }: { column
   );
 }
 
-function ModuleGrid({ sections, activeModule, onSelect }: { sections: ModuleSection[]; activeModule: string; onSelect: (value: string) => void }) {
+function ModuleGrid({
+  sections,
+  activeModule,
+  onSelect,
+}: {
+  sections: ModuleSection[];
+  activeModule: string;
+  onSelect: (value: string, detail?: string) => void;
+}) {
   return (
     <div className="grid gap-5 xl:grid-cols-2">
       {sections.map((section) => (
@@ -759,7 +778,7 @@ function ModuleGrid({ sections, activeModule, onSelect }: { sections: ModuleSect
               <button
                 key={item}
                 type="button"
-                onClick={() => onSelect(section.title)}
+                onClick={() => onSelect(section.title, item)}
                 className={`rounded-[18px] border px-4 py-4 text-left text-sm font-medium shadow-sm transition ${
                   activeModule === section.title ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-stone-200 bg-white text-slate-700 hover:border-amber-200'
                 }`}
@@ -774,7 +793,7 @@ function ModuleGrid({ sections, activeModule, onSelect }: { sections: ModuleSect
   );
 }
 
-function CentralSystemGrid({ language, onSelect }: { language: Language; onSelect: (value: string) => void }) {
+function CentralSystemGrid({ language, onSelect }: { language: Language; onSelect: (value: string, detail?: string) => void }) {
   const t = copy[language];
   return (
     <SectionCard eyebrow={t.centralSystem} title={t.adminOperations} action={language === 'en' ? '9 families mapped' : '9 familias mapeadas'}>
@@ -791,7 +810,7 @@ function CentralSystemGrid({ language, onSelect }: { language: Language; onSelec
             <button
               key={module.title}
               type="button"
-              onClick={() => onSelect(module.title)}
+              onClick={() => onSelect(module.title, module.subtitle)}
               className="min-h-44 rounded-[22px] border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:border-amber-300 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-3">
@@ -1052,6 +1071,8 @@ export default function JldBackendPremiumMockup() {
   const [showExecutivePreview, setShowExecutivePreview] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [openedModuleDetail, setOpenedModuleDetail] = useState('Dashboard ejecutivo');
   const t = copy[language];
 
   const filteredBranchSummary = useMemo(() => {
@@ -1066,9 +1087,16 @@ export default function JldBackendPremiumMockup() {
     setViewMode(viewModeOptions[nextLanguage][0]);
   }
 
-  function handleSelectModule(item: string) {
+  function setTimedActionMessage(message: string) {
+    setActionMessage(message);
+    window.setTimeout(() => setActionMessage(''), 3500);
+  }
+
+  function handleSelectModule(item: string, detail?: string) {
     setActiveModule(item);
     setSidebarOpen(false);
+    setOpenedModuleDetail(detail || item);
+    setTimedActionMessage(`${t.moduleOpened}: ${detail || item}`);
     const targetId = navigationTargets[item] ?? 'dashboard';
     window.setTimeout(() => {
       document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1077,6 +1105,7 @@ export default function JldBackendPremiumMockup() {
 
   function handleViewModeChange(nextViewMode: string) {
     setViewMode(nextViewMode);
+    setTimedActionMessage(`${t.actionReady}: ${nextViewMode}`);
     if (nextViewMode === viewModeOptions[language][2]) {
       setActiveModule('Configuración');
       document.getElementById('configuracion')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1115,9 +1144,11 @@ export default function JldBackendPremiumMockup() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    setTimedActionMessage(`${t.actionReady}: Export Excel`);
   }
 
   function handlePrint() {
+    setTimedActionMessage(`${t.actionReady}: Print`);
     window.print();
   }
 
@@ -1129,6 +1160,7 @@ export default function JldBackendPremiumMockup() {
         minute: '2-digit',
       }),
     );
+    setTimedActionMessage(`${t.actionReady}: Refresh`);
   }
 
   return (
@@ -1161,7 +1193,20 @@ export default function JldBackendPremiumMockup() {
             onPrint={handlePrint}
             onRefresh={handleRefresh}
             lastSyncLabel={lastSyncLabel}
+            actionMessage={actionMessage}
           />
+
+          <section className="rounded-[24px] border border-amber-200 bg-gradient-to-r from-amber-50 to-white px-5 py-4 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">{t.activeModule}</div>
+                <div className="mt-1 text-lg font-semibold text-slate-950">{activeModule}</div>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700">
+                {openedModuleDetail}
+              </div>
+            </div>
+          </section>
 
           <section id="dashboard" className="scroll-mt-28 grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="rounded-[32px] border border-stone-200 bg-gradient-to-b from-white to-stone-50 p-7 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
