@@ -367,6 +367,15 @@ const reportWorkflows = [
   { title: 'Reporte retiros efectivo', branch: 'Sucursal + corte', output: 'Retiro, usuario, autorización', state: 'Pendiente setup' },
 ];
 
+type WorkflowSelection = {
+  title: string;
+  category: string;
+  filters: string;
+  output: string;
+  state: string;
+  sensitive?: boolean;
+};
+
 const dashboardMetrics = [
   { label: 'Ventas del mes', value: '$1,223,400', note: 'Polanco + Santa Fe', delta: '+5.8%', tone: 'good' },
   { label: 'Ticket promedio', value: '$1,680', note: '728 tickets emitidos', delta: '+4.1%', tone: 'good' },
@@ -932,14 +941,36 @@ function AdminOperationsPanel({ language }: { language: Language }) {
   );
 }
 
-function ReportWorkflowPanel({ language }: { language: Language }) {
+function ReportWorkflowPanel({
+  language,
+  selectedWorkflow,
+  onSelect,
+}: {
+  language: Language;
+  selectedWorkflow: WorkflowSelection;
+  onSelect: (workflow: WorkflowSelection) => void;
+}) {
   const t = copy[language];
   return (
     <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
       <SectionCard eyebrow={t.cashDesk} title={language === 'en' ? 'Branch adjustment controls' : 'Controles ajustes sucursal'} action="Caja chica · Corte · Notas">
         <div className="grid gap-3 sm:grid-cols-2">
           {branchAdjustmentModules.map((item, index) => (
-            <div key={item} className={`rounded-[20px] border p-4 ${index === 1 ? 'border-rose-200 bg-rose-50 text-rose-950' : 'border-stone-200 bg-stone-50 text-slate-800'}`}>
+            <button
+              key={item}
+              type="button"
+              onClick={() =>
+                onSelect({
+                  title: item,
+                  category: language === 'en' ? 'Branch adjustment' : 'Ajuste sucursal',
+                  filters: index === 1 ? 'Sucursal + usuario + corte abierto' : 'Sucursal + usuario + autorización',
+                  output: index === 1 ? 'Corte activo, folio, bitácora' : 'Movimiento auditado, folio, autorización',
+                  state: index === 1 ? 'Requiere validación' : 'Listo mock',
+                  sensitive: index === 1,
+                })
+              }
+              className={`rounded-[20px] border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-300 ${selectedWorkflow.title === item ? 'border-amber-300 bg-amber-50 text-slate-950 shadow-md' : index === 1 ? 'border-rose-200 bg-rose-50 text-rose-950' : 'border-stone-200 bg-stone-50 text-slate-800'}`}
+            >
               <div className="text-sm font-semibold">{item}</div>
               <div className="mt-2 text-xs leading-5 text-stone-500">
                 {index === 1
@@ -950,24 +981,66 @@ function ReportWorkflowPanel({ language }: { language: Language }) {
                     ? 'Prepared for audit trail and authorization.'
                     : 'Preparado para bitácora y autorización.'}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </SectionCard>
 
       <SectionCard eyebrow={t.reportForms} title={language === 'en' ? 'Administrative report workflows' : 'Flujos reportes administrativos'} action="Sucursal · Periodo · Colaborador">
-        <DataTable
-          columns={[
-            { key: 'title', label: language === 'en' ? 'Report' : 'Reporte', tone: 'strong' },
-            { key: 'branch', label: language === 'en' ? 'Filters' : 'Filtros' },
-            { key: 'output', label: language === 'en' ? 'Output' : 'Salida' },
-            { key: 'state', label: language === 'en' ? 'Status' : 'Estado' },
-          ]}
-          rows={reportWorkflows.map((item) => ({
-            ...item,
-            state: language === 'en' && item.state === 'Pendiente setup' ? 'Setup pending' : language === 'en' ? 'Mock ready' : item.state,
-          }))}
-        />
+        <div className="overflow-hidden rounded-[20px] border border-stone-200">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-stone-100 text-stone-600">
+              <tr>
+                <th className="px-4 py-3 font-semibold">{language === 'en' ? 'Report' : 'Reporte'}</th>
+                <th className="px-4 py-3 font-semibold">{language === 'en' ? 'Filters' : 'Filtros'}</th>
+                <th className="px-4 py-3 font-semibold">{language === 'en' ? 'Output' : 'Salida'}</th>
+                <th className="px-4 py-3 font-semibold">{language === 'en' ? 'Status' : 'Estado'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportWorkflows.map((item) => {
+                const state = language === 'en' && item.state === 'Pendiente setup' ? 'Setup pending' : language === 'en' ? 'Mock ready' : item.state;
+                const isSelected = selectedWorkflow.title === item.title;
+                return (
+                  <tr key={item.title} className={`border-t border-stone-100 ${isSelected ? 'bg-amber-50' : 'bg-white odd:bg-stone-50/70'}`}>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onSelect({
+                            title: item.title,
+                            category: language === 'en' ? 'Administrative report' : 'Reporte administrativo',
+                            filters: item.branch,
+                            output: item.output,
+                            state,
+                          })
+                        }
+                        className="text-left font-semibold text-slate-900 underline-offset-4 transition hover:text-amber-700 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-300"
+                      >
+                        {item.title}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-stone-600">{item.branch}</td>
+                    <td className="px-4 py-3 text-stone-600">{item.output}</td>
+                    <td className="px-4 py-3 text-stone-600">{state}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="workflow-detail" className={`mt-5 rounded-[24px] border p-5 ${selectedWorkflow.sensitive ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}>
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">
+            {language === 'en' ? 'Selected workflow' : 'Workflow sélectionné'}
+          </div>
+          <div className="mt-2 text-xl font-semibold text-slate-950">{selectedWorkflow.title}</div>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <MiniStat label={language === 'en' ? 'Filters' : 'Filtres'} value={selectedWorkflow.filters} note={selectedWorkflow.category} />
+            <MiniStat label={language === 'en' ? 'Output' : 'Sortie'} value={selectedWorkflow.output} note={language === 'en' ? 'Prepared for API' : 'Préparé pour API'} />
+            <MiniStat label={language === 'en' ? 'Status' : 'État'} value={selectedWorkflow.state} note={selectedWorkflow.sensitive ? 'Validación requerida' : 'Mock activo'} />
+          </div>
+        </div>
       </SectionCard>
     </section>
   );
@@ -1138,6 +1211,14 @@ export default function JldBackendPremiumMockup() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
   const [openedModuleDetail, setOpenedModuleDetail] = useState('Dashboard ejecutivo');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowSelection>({
+    title: 'Abrir corte de caja',
+    category: 'Ajuste sucursal',
+    filters: 'Sucursal + usuario + corte abierto',
+    output: 'Corte activo, folio, bitácora',
+    state: 'Requiere validación',
+    sensitive: true,
+  });
   const t = copy[language];
 
   const filteredBranchSummary = useMemo(() => {
@@ -1170,6 +1251,16 @@ export default function JldBackendPremiumMockup() {
     const targetId = navigationTargets[item] ?? 'dashboard';
     window.setTimeout(() => {
       document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  function handleSelectWorkflow(workflow: WorkflowSelection) {
+    setSelectedWorkflow(workflow);
+    setActiveModule('Configuración');
+    setOpenedModuleDetail(workflow.title);
+    setTimedActionMessage(`${t.actionReady}: ${workflow.title}`);
+    window.setTimeout(() => {
+      document.getElementById('workflow-detail')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 50);
   }
 
@@ -1358,7 +1449,11 @@ export default function JldBackendPremiumMockup() {
           </div>
 
           <div id="configuracion" className="scroll-mt-28">
-            <ReportWorkflowPanel language={language} />
+            <ReportWorkflowPanel
+              language={language}
+              selectedWorkflow={selectedWorkflow}
+              onSelect={handleSelectWorkflow}
+            />
           </div>
 
           <section id="ventas" className="scroll-mt-28 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
