@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Guard } from '../components/Guard';
 
 type TableColumn<T> = {
   key: keyof T;
@@ -24,7 +25,7 @@ type CentralModule = {
 
 type Language = 'es' | 'en';
 
-const SYSTEM_IN_CONSTRUCTION = true;
+const SYSTEM_IN_CONSTRUCTION = false;
 
 const copy = {
   es: {
@@ -1529,6 +1530,7 @@ export default function JldBackendPremiumMockup() {
   }
 
   return (
+    <Guard>
     <div className="min-h-screen bg-gradient-to-b from-stone-100 via-slate-50 to-slate-100 text-slate-950">
       <Header
         activeModule={activeModule}
@@ -1741,6 +1743,7 @@ export default function JldBackendPremiumMockup() {
         </main>
       </div>
     </div>
+    </Guard>
   );
 }
 

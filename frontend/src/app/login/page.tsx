@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { login, token } = useAuth();
   const { t } = useI18n();
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('olivier.steineur@gmail.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

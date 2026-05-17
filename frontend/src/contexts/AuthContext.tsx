@@ -34,11 +34,15 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const PREVIEW_USER: User = {
   id: 'preview-jld-admin',
-  email: 'admin.preview@jeanlouisdavid.mx',
-  name: 'Jean Louis David Admin',
+  email: 'olivier.steineur@gmail.com',
+  name: 'Olivier Steineur',
   tenantId: 'jld-preview',
   tenantName: 'Jean Louis David Mexico',
 };
+
+const PREVIEW_ADMIN_EMAIL =
+  process.env.NEXT_PUBLIC_JLD_ADMIN_EMAIL?.trim().toLowerCase() || 'olivier.steineur@gmail.com';
+const PREVIEW_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_JLD_ADMIN_PASSWORD || 'JLD2026!';
 
 function generateTenantId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -139,7 +143,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const supabase = safeSupabase();
       if (!supabase) {
-        activatePreviewMode();
+        if (typeof window !== 'undefined') {
+          const savedToken = localStorage.getItem('token');
+          const savedUser = localStorage.getItem('user');
+          if (savedToken === 'preview-mode-token' && savedUser) {
+            try {
+              setToken(savedToken);
+              setUser(JSON.parse(savedUser) as User);
+            } catch {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+            }
+          }
+        }
         if (active) setLoading(false);
         return;
       }
@@ -162,6 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       if (!isSupabaseConfigured()) {
+        if (email.trim().toLowerCase() !== PREVIEW_ADMIN_EMAIL || password !== PREVIEW_ADMIN_PASSWORD) {
+          throw new Error('Invalid email or password');
+        }
         activatePreviewMode();
         return;
       }
@@ -234,7 +253,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     if (!isSupabaseConfigured()) {
-      activatePreviewMode();
+      setToken(null);
+      setUser(null);
+      clearAuthStorage();
       return;
     }
     const supabase = safeSupabase();
@@ -246,7 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     clearAuthStorage();
-  }, [activatePreviewMode, clearAuthStorage, safeSupabase]);
+  }, [clearAuthStorage, safeSupabase]);
 
   const value = useMemo(
     () => ({
