@@ -20,6 +20,11 @@ const tiles = [
     title: 'Products',
     description: 'List of products that can be selected in CRM deals.',
   },
+  {
+    href: '/admin/parameters/security',
+    title: 'Update PWD & 2FA',
+    description: 'Admin password reset and two-factor access settings.',
+  },
 ] as const;
 
 export default function AdminParametersPage() {

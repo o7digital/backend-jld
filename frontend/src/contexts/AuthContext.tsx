@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from '../lib/supabaseClient';
 import { API_BASE_URL } from '../lib/apiBase';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { getDefaultPreviewAdmin, validatePreviewLogin } from '../lib/previewAuth';
 
 type User = {
   id: string;
@@ -18,7 +19,7 @@ type AuthContextValue = {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, twoFactorCode?: string) => Promise<void>;
   register: (payload: {
     tenantId?: string;
     tenantName: string;
@@ -32,17 +33,16 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const PREVIEW_USER: User = {
-  id: 'preview-jld-admin',
-  email: 'olivier.steineur@gmail.com',
-  name: 'Olivier Steineur',
-  tenantId: 'jld-preview',
-  tenantName: 'Jean Louis David Mexico',
-};
-
-const PREVIEW_ADMIN_EMAIL =
-  process.env.NEXT_PUBLIC_JLD_ADMIN_EMAIL?.trim().toLowerCase() || 'olivier.steineur@gmail.com';
-const PREVIEW_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_JLD_ADMIN_PASSWORD || 'JLD2026!';
+function mapPreviewUser() {
+  const admin = getDefaultPreviewAdmin();
+  return {
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    tenantId: 'jld-preview',
+    tenantName: 'Jean Louis David Mexico',
+  };
+}
 
 function generateTenantId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -72,11 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [safeSupabase]);
 
   const activatePreviewMode = useCallback(() => {
+    const previewUser = mapPreviewUser();
     setToken('preview-mode-token');
-    setUser(PREVIEW_USER);
+    setUser(previewUser);
     if (typeof window !== 'undefined') {
       localStorage.setItem('token', 'preview-mode-token');
-      localStorage.setItem('user', JSON.stringify(PREVIEW_USER));
+      localStorage.setItem('user', JSON.stringify(previewUser));
     }
   }, []);
 
@@ -176,12 +177,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [activatePreviewMode, bootstrapTenant, safeSupabase, syncSession]);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, twoFactorCode?: string) => {
       if (!isSupabaseConfigured()) {
-        if (email.trim().toLowerCase() !== PREVIEW_ADMIN_EMAIL || password !== PREVIEW_ADMIN_PASSWORD) {
-          throw new Error('Invalid email or password');
-        }
+        const previewUser = validatePreviewLogin(email, password, twoFactorCode);
         activatePreviewMode();
+        const mappedUser: User = {
+          id: previewUser.id,
+          email: previewUser.email,
+          name: previewUser.name,
+          tenantId: 'jld-preview',
+          tenantName: 'Jean Louis David Mexico',
+        };
+        setUser(mappedUser);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(mappedUser));
+        }
         return;
       }
       const supabase = mustSupabase();
